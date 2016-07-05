@@ -1,7 +1,11 @@
 (ns tongue.test
   (:require
     [tongue.core :as tongue]
-    [#?(:clj clojure.test :cljs cljs.test) :as test :refer [deftest is are testing]]))
+    [#?(:clj clojure.test :cljs cljs.test) :as test :refer [deftest is are testing]]
+    [#?(:clj clojure.spec.test :cljs cljs.spec.test) :as spec.test]))
+
+
+(test/use-fixtures :once (fn [f] (spec.test/instrument) (f) (spec.test/unstrument)))
 
 
 (deftest test-format-number
@@ -101,3 +105,4 @@
 )))
 
 ;; (test/test-ns 'tongue.test)
+

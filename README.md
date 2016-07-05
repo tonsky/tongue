@@ -4,12 +4,12 @@ Tongue is a do-it-yourself i18n library for Clojure and ClojureScript.
 
 Tongue is very simple yet capable:
 
-- It comes with absolutely no built-in knowledge of world locales. It has all the tooling for you to define them yourself.
+- It comes with no built-in knowledge of world locales. It has all the tooling for you to define locales yourself thought.
 - There’s no special dictionary format, just plain Clojure maps.
 - For complex cases (pluralization, special wording, complex dispatch rules, etc) use regular Clojure functions.
 - Tongue can be used from Clojure and ClojureScript.
 
-### Who’s using Rum?
+### Who’s using Tongue?
 
 - [Cognician](https://www.cognician.com), coaching platform
 
@@ -37,7 +37,7 @@ Define dictionaries:
           :weather/clouds "Clouds"
           
           ;; nested maps will be unpacked into namespaced keys
-          ;; this is purely for ease of writing dictionaries
+          ;; this is purely for ease of dictionary writing
           :animals { :dog "Dog"   ;; => :animals/dog
                      :cat "Cat" } ;; => :animals/cat
                      
@@ -50,7 +50,7 @@ Define dictionaries:
                    (cond
                      (zero? x) "No items"
                      (= 1 x)   "1 item"
-                     :else     "%1 items")) ;; note how we returned string with substitution
+                     :else     "%1 items")) ;; you can return string with substitutions
           
           ;; arbitrary function for locale-aware formatting
           :tongue/format-number (fn [x] (str/replace (str x) "." ","))
@@ -64,7 +64,7 @@ Define dictionaries:
     :tongue/fallback :en }     ;; fallback locale key
 ```
 
-Build translation function:
+Then build translation function:
 
 ```clj
 (def translate ;; [locale key & args] => string

@@ -1,6 +1,7 @@
 (ns tongue.core
   (:require
-    [clojure.string :as str]))
+    [clojure.string :as str]
+    [#?(:clj clojure.spec :cljs cljs.spec) :as spec]))
 
 
 (defn number-formatter
@@ -32,6 +33,14 @@
                    res))
                (when (not= "" fraction-part)
                  (str decimal  fraction-part))))))))
+
+
+(spec/def ::decimal string?)
+(spec/def ::group string?)
+(spec/fdef number-formatter
+  :args (spec/cat :opts (spec/keys :opt-un [::decimal ::group]))
+  :ret  (spec/fspec :args (spec/cat :x number?)
+                    :ret  string?))
 
 
 (defn- parse-long [s]
@@ -115,10 +124,36 @@
              {} lang->dict))
 
 
+(spec/def ::template (spec/or :str string?
+                              :fn ifn?))
+
+(spec/def ::dict (spec/map-of keyword? (spec/or :plain  ::template
+                                                :nested (spec/map-of keyword? ::template))))
+
+(spec/def :tongue/fallback keyword?)
+(spec/def ::dicts (spec/and
+                    (spec/keys :opt [:tongue/fallback])
+                    (spec/map-of keyword? (spec/or :dict ::dict
+                                                   :special keyword?)))) ;; hack for :tongue/fallback
+
+(spec/def ::translate
+  (spec/fspec
+    :args (spec/cat :locale keyword?
+                    :key keyword?
+                    :args (spec/* ::spec/any))
+    :ret  string?))
+
+
 (defn build-translate
   "Given dicts, builds translate function closed over these dicts:
    (build-translate dicts) => ( [locale key & args] => string )"
-  [lang->dict]
-  (partial translate (build-dicts lang->dict)))
-
+  [dicts]
+  { :pre [(spec/valid? ::dicts dicts)] }
+;;     :post [(not= ::spec/invalid (spec/conform ::translate %))] } ;; requires test.check generator
+  (let [compiled-dicts (build-dicts dicts)]
+    (fn
+      ([locale key] (translate compiled-dicts locale key))
+      ([locale key x] (translate compiled-dicts locale key x))
+      ([locale key x & args]
+        (apply translate compiled-dicts locale key x args)))))
 
