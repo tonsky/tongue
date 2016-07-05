@@ -133,8 +133,9 @@
 (spec/def :tongue/fallback keyword?)
 (spec/def ::dicts (spec/and
                     (spec/keys :opt [:tongue/fallback])
-                    (spec/map-of keyword? (spec/or :dict ::dict
-                                                   :special keyword?)))) ;; hack for :tongue/fallback
+                    (spec/conformer #(dissoc % :tongue/fallback))
+                    (spec/map-of keyword? ::dict)))
+
 
 (spec/def ::translate
   (spec/fspec
@@ -156,4 +157,3 @@
       ([locale key x] (translate compiled-dicts locale key x))
       ([locale key x & args]
         (apply translate compiled-dicts locale key x args)))))
-
