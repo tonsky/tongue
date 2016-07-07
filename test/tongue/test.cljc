@@ -101,8 +101,25 @@
       :en-GB :num   [1000.1]         "num 1,000.1"           ;; fallback to :en
       :ru    :num   [1000.1]         "число 1 000,1"
       :ru    :nums  [1000.1 -2000.2] "nums 1 000,1 -2 000,2" ;; :ru for numbers, fallback for pattern
-      :de    :num   [1000.1]         "num 1,000.1"           ;; fallback
-)))
+    ))
+  
+  (let [t (tongue/build-translate { :en { :key "%1 value" }
+                                    :ru { :key "%1 значение"
+                                          :tongue/format-number (tongue/number-formatter { :decimal "," :group " " })}
+                                    :tongue/fallback :ru })]
+    ;; number format shouldn’t look into fallback
+    (is (= "1000.1 value" (t :en :key 1000.1))) 
+    
+    ;; number format should follow tag generality chain :ru-inf => :ru
+    (is (= "1 000,1 значение" (t :ru-inf :key 1000.1))))
+  
+  ;; should work without :tongue/fallback
+  (let [t (tongue/build-translate { :en { :key "%1 value" }
+                                    :ru { :key "%1 значение" } })]
+    (is (= "1000.1 value" (t :en :key 1000.1))) 
+    (is (= "1000.1 значение" (t :ru :key 1000.1)))
+    (is (= "|Missing key :key|" (t :de :key 1000.1))))
+)
 
 ;; (test/test-ns 'tongue.test)
 

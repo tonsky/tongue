@@ -82,7 +82,7 @@
 
 (defn- format-argument [dicts locale x]
   (cond
-    (number? x) ((or (lookup-template dicts locale :tongue/format-number) str) x)
+    (number? x) ((or (lookup-template-for-locale dicts locale :tongue/format-number) str) x)
     :else       (str x)))
 
 
