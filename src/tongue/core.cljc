@@ -1,7 +1,12 @@
 (ns tongue.core
   (:require
     [clojure.string :as str]
+    #?(:clj [clojure.future :refer [simple-keyword?]])
     [#?(:clj clojure.spec :cljs cljs.spec) :as spec]))
+
+
+(spec/def ::decimal string?)
+(spec/def ::group string?)
 
 
 (defn number-formatter
@@ -11,9 +16,10 @@
        :group   \"\" } ;; thousands grouping mark
    Returns function (number => String)"
   [opts]
-  (let [{:keys [decimal  group]
-         :or { decimal  "."
-               group "" }} opts]
+  (spec/assert (spec/keys :opt-un [::decimal ::group]) opts)
+  (let [{:keys [decimal group]
+         :or   { decimal "."
+                 group   "" }} opts]
     (cond
       (and (= "." decimal ) (= "" group))
       str
@@ -33,14 +39,6 @@
                    res))
                (when (not= "" fraction-part)
                  (str decimal  fraction-part))))))))
-
-
-(spec/def ::decimal string?)
-(spec/def ::group string?)
-(spec/fdef number-formatter
-  :args (spec/cat :opts (spec/keys :opt-un [::decimal ::group]))
-  :ret  (spec/fspec :args (spec/cat :x number?)
-                    :ret  string?))
 
 
 (defn- parse-long [s]
@@ -82,19 +80,31 @@
 
 (defn- format-argument [dicts locale x]
   (cond
-    (number? x) ((or (lookup-template-for-locale dicts locale :tongue/format-number) str) x)
+    (number? x) (let [formatter (or (lookup-template-for-locale dicts locale :tongue/format-number)
+                                    str)]
+                  (formatter x))
     :else       (str x)))
+
+
+(spec/def ::locale simple-keyword?)
+(spec/def ::key keyword?)
 
 
 (defn- translate
   ([dicts locale key]
+    (spec/assert ::locale locale)
+    (spec/assert ::key key)
     (let [t (lookup-template dicts locale key)]
       (if (ifn? t) (t) t)))
   ([dicts locale key x]
+    (spec/assert ::locale locale)
+    (spec/assert ::key key)
     (let [t (lookup-template dicts locale key)
           s (if (ifn? t) (t x) t)]
       (str/replace s #"%1" (format-argument dicts locale x))))
   ([dicts locale key x & rest]
+    (spec/assert ::locale locale)
+    (spec/assert ::key key)
     (let [args (cons x rest)
           t    (lookup-template dicts locale key)
           s    (if (ifn? t) (apply t x rest) t)]
@@ -149,8 +159,7 @@
   "Given dicts, builds translate function closed over these dicts:
    (build-translate dicts) => ( [locale key & args] => string )"
   [dicts]
-  { :pre [(spec/valid? ::dicts dicts)] }
-;;     :post [(not= ::spec/invalid (spec/conform ::translate %))] } ;; requires test.check generator
+  (spec/assert ::dicts dicts)
   (let [compiled-dicts (build-dicts dicts)]
     (fn
       ([locale key] (translate compiled-dicts locale key))

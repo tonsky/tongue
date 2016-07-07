@@ -19,7 +19,7 @@ Tongue is very simple yet capable:
 Add to `project.clj`:
 
 ```clj
-[tongue "0.1.0"]
+[tongue "0.1.1"]
 ```
 
 Define dictionaries:
@@ -103,7 +103,15 @@ And go use it:
 (translate :en :unknown) ;; => "|Missing key :unknown|"
 ```
 
+For production, don’t forget to add `-Dclojure.spec.compile-asserts=false` to your JVM options
+
 ## Changes
+
+### 0.1.1
+
+- Absense of format rules shouldn’t break `translate`
+- number-format should not use fallback locale
+- updated to clojure.spec 1.9.0-alpha9
 
 ### 0.1.0
 
