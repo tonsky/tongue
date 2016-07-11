@@ -1,45 +1,19 @@
 (ns tongue.core
   (:require
     [clojure.string :as str]
-    #?(:clj [clojure.future :refer [simple-keyword?]])
+    [tongue.inst :as inst]
+    [tongue.number :as number]
+    #?(:clj [clojure.future :refer [simple-keyword? inst?]])
     [#?(:clj clojure.spec :cljs cljs.spec) :as spec]))
 
 
-(spec/def ::decimal string?)
-(spec/def ::group string?)
+(def inst-formatter inst/formatter)
 
 
-(defn number-formatter
-  "Helper to build number format functions
-   Accepts options map:
-     { :decimal \".\"  ;; integer/fractional mark
-       :group   \"\" } ;; thousands grouping mark
-   Returns function (number => String)"
-  [opts]
-  (spec/assert (spec/keys :opt-un [::decimal ::group]) opts)
-  (let [{:keys [decimal group]
-         :or   { decimal "."
-                 group   "" }} opts]
-    (cond
-      (and (= "." decimal ) (= "" group))
-      str
-      
-      (= "" group)
-      #(str/replace (str %) "." decimal )
-      
-      :else
-      (fn [x]
-        (let [[_ sign integer-part fraction-part] (re-matches #"(-?)(\d+)\.?(\d*)" (str x))
-              len (count integer-part)]
-          (str sign
-               (loop [idx (rem len 3)
-                      res (subs integer-part 0 (rem len 3))]
-                 (if (< idx len)
-                   (recur (+ idx 3) (str res (when (pos? idx) group) (subs integer-part idx (+ idx 3))))
-                   res))
-               (when (not= "" fraction-part)
-                 (str decimal  fraction-part))))))))
+(def format-inst-iso (inst-formatter "yyyy-MM-dd'T'HH:mm:ss" {}))
 
+
+(def number-formatter number/formatter)
 
 (defn- parse-long [s]
   #?(:cljs (js/parseInt s)
@@ -82,6 +56,9 @@
   (cond
     (number? x) (let [formatter (or (lookup-template-for-locale dicts locale :tongue/format-number)
                                     str)]
+                  (formatter x))
+    (inst? x)   (let [formatter (or (lookup-template-for-locale dicts locale :tongue/format-inst)
+                                    format-inst-iso)]
                   (formatter x))
     :else       (str x)))
 
@@ -137,8 +114,13 @@
 (spec/def ::template (spec/or :str string?
                               :fn ifn?))
 
-(spec/def ::dict (spec/map-of keyword? (spec/or :plain  ::template
-                                                :nested (spec/map-of keyword? ::template))))
+(spec/def :tongue/format-number ifn?)
+(spec/def :tongue/format-inst ifn?)
+
+(spec/def ::dict (spec/and
+                   (spec/keys :opt [:tongue/format-number :tongue/format-inst])
+                   (spec/map-of keyword? (spec/or :plain  ::template
+                                                  :nested (spec/map-of keyword? ::template)))))
 
 (spec/def :tongue/fallback keyword?)
 (spec/def ::dicts (spec/and
