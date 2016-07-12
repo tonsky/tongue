@@ -73,46 +73,34 @@
 
 (defn format-token [strings token c]
   (case token
-    ;; 24 hour (0-23)
-    :HH    (pad2 (hour24 c))
-    :H     (hour24 c)
-    ;; 12 hour (1-12)
-    :hh    (pad2 (hour12 c))
-    :h     (hour12 c)
-    ;; AM/PM
-    :a     (nth (:day-periods strings) (if (< (hour24 c) 12) 0 1))
-    ;; minutes
-    :mm    (pad2 (minutes c))
-    :m     (minutes c)
-    ;; seconds
-    :ss    (pad2 (seconds c))
-    :s     (seconds c)
-    ;; milliseconds
-    :S     (pad3 (milliseconds c))
-    ;; day of week (Sunday => 1, Monday => 2, ...)
-    :eeeee (nth (:weekdays-narrow strings) (day-of-week c))
-    :eeee  (nth (:weekdays-long strings)   (day-of-week c))
-    :eee   (nth (:weekdays-short strings)  (day-of-week c))
-    :ee    (pad2 (inc (day-of-week c)))
-    :e     (inc (day-of-week c))
-    ;; day of month (1-31)
-    :dd    (pad2 (day-of-month c))
-    :d     (day-of-month c)
-    ;; month (Jan => 1, Feb => 2, ...)
-    :MMMMM (nth (:months-narrow strings) (month c))
-    :MMMM  (nth (:months-long strings) (month c))
-    :MMM   (nth (:months-short strings) (month c))
-    :MM    (pad2 (inc (month c)))
-    :M     (inc (month c))
-    ;; year
-    :yyyy  (year c)
-    :yy    (pad2 (mod (year c) 100))
-    ;; era (BC/AD)
-    :GGGGG (nth (:eras-narrow strings) (era c))
-    :GGGG  (nth (:eras-long strings)   (era c))
-    :GGG   (nth (:eras-short strings)  (era c))
-    ;; otherwise
-    token))
+    :hour24-padded   (pad2 (hour24 c))
+    :hour24          (hour24 c)
+    :hour12-padded   (pad2 (hour12 c))
+    :hour12          (hour12 c)
+    :day-period      (nth (:day-periods strings) (if (< (hour24 c) 12) 0 1))
+    :minutes-padded  (pad2 (minutes c))
+    :minutes         (minutes c)
+    :seconds-padded  (pad2 (seconds c))
+    :seconds         (seconds c)
+    :milliseconds    (pad3 (milliseconds c))
+    :weekday-long    (nth (:weekdays-long strings)   (day-of-week c))
+    :weekday-short   (nth (:weekdays-short strings)  (day-of-week c))
+    :weekday-narrow  (nth (:weekdays-narrow strings) (day-of-week c))
+    :weekday-numeric (inc (day-of-week c))
+    :day-padded      (pad2 (day-of-month c))
+    :day             (day-of-month c)
+    :month-long      (nth (:months-long strings) (month c))
+    :month-short     (nth (:months-short strings) (month c))
+    :month-narrow    (nth (:months-narrow strings) (month c))
+    :month-numeric-padded (pad2 (inc (month c)))
+    :month-numeric   (inc (month c))
+    :year            (year c)
+    :year-2digit     (pad2 (mod (year c) 100))
+    :era-long        (nth (:eras-long strings)   (era c))
+    :era-short       (nth (:eras-short strings)  (era c))
+    (if (string? token)
+      token
+      (str "<" (name token) ">"))))
 
 
 #?(:clj (def ^:private UTC (java.util.TimeZone/getTimeZone "UTC")))
@@ -126,25 +114,25 @@
   (spec/def ::months-short    (spec/coll-of string? :count 12))
   (spec/def ::months-long     (spec/coll-of string? :count 12))
   (spec/def ::day-periods     (spec/coll-of string? :count 2))
-  (spec/def ::eras-narrow     (spec/coll-of string? :count 2))
   (spec/def ::eras-short      (spec/coll-of string? :count 2))
   (spec/def ::eras-long       (spec/coll-of string? :count 2))
 
-  (spec/def ::pattern string?)
+  (spec/def ::template string?)
   (spec/def ::strings
-    (spec/keys :opt-un [::weekdays-narrow ::weekdays-short ::weekdays-long ::months-narrow ::months-short ::months-long ::day-periods ::eras-narrow ::eras-short ::eras-long])))
+    (spec/keys :opt-un [::weekdays-narrow ::weekdays-short ::weekdays-long ::months-narrow ::months-short ::months-long ::day-periods ::eras-short ::eras-long])))
+
+
 
 
 (defn formatter
-  [pattern strings]
+  [template strings]
 
   (macro/with-spec
-    (spec/assert ::pattern pattern)
+    (spec/assert ::template template)
     (spec/assert ::strings strings))
   
-  (let [tokens (->> (re-seq #"(?:'([^']*)'|HH|H|hh|h|a|mm|m|ss|s|S|e{1,5}|dd|d|M{1,5}|yyyy|yy|G{3,5}|([^HhamsSedMyG']+)|([^']))" pattern)
-                    (map (fn [[a b c d]]
-                           (or b c d (keyword a)))))]
+  (let [tokens (->> (re-seq #"(?:<([^<> ]+)>|[<]|[^<]*)" template)
+                    (map (fn [[string code]] (if code (keyword code) string))))]
     #?(:clj
         (fn format
           ([t] 

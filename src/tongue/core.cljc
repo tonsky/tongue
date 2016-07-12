@@ -11,7 +11,7 @@
 (def inst-formatter inst/formatter)
 
 
-(def format-inst-iso (inst-formatter "yyyy-MM-dd'T'HH:mm:ss" {}))
+(def format-inst-iso (inst-formatter "<year>-<month-numeric-padded>-<day-padded>T<hour24-padded>:<minutes-padded>:<seconds-padded>" {}))
 
 
 (def number-formatter number/formatter)

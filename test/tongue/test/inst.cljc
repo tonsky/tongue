@@ -15,7 +15,7 @@
      :cljs 360))
 
 
-(def inst-strings
+(def strings
   { :weekdays-narrow ["S" "M" "T" "W" "T" "F" "S"]
     :weekdays-short  ["Sun" "Mon" "Tue" "Wed" "Thu" "Fri" "Sat"]
     :weekdays-long   ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"]
@@ -23,18 +23,41 @@
     :months-short    ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"]
     :months-long     ["January" "February" "March" "April" "May" "June" "July" "August" "September" "October" "November" "December"]
     :day-periods     ["AM" "PM"]
-    :eras-narrow     ["B" "A"]
     :eras-short      ["BC" "AD"]
     :eras-long       ["Before Christ" "Anno Domini"] })
 
 
 (deftest test-format-inst
-  (is (= "03 3 03 3 AM 04 4 05 5 006 S Saturday Sat 07 7 02 2 J January Jan 01 1 2016 16 AD Anno Domini A"
-         ((tongue/inst-formatter "HH H hh h a mm m ss s S eeeee eeee eee ee e dd d MMMMM MMMM MMM MM M yyyy yy GGG GGGG GGGGG" inst-strings)
-           #inst "2016-01-02T03:04:05.006" UTC)))
+  (let [inst #inst "2016-01-02T03:04:05.006"]
+    (are [f r] (= r ((tongue/inst-formatter f strings) inst UTC))
+      "<hour24-padded>"    "03"
+      "<hour24>"           "3"
+      "<hour12-padded>"    "03"
+      "<hour12>"           "3"
+      "<day-period>"       "AM"
+      "<minutes-padded>"   "04"
+      "<minutes>"          "4"
+      "<seconds-padded>"   "05"
+      "<seconds>"          "5"
+      "<milliseconds>"     "006"
+      "<weekday-long>"     "Saturday"
+      "<weekday-short>"    "Sat"
+      "<weekday-narrow>"   "S"
+      "<weekday-numeric>"  "7"
+      "<day-padded>"       "02"
+      "<day>"              "2"
+      "<month-long>"       "January"
+      "<month-short>"      "Jan"
+      "<month-narrow>"     "J"
+      "<month-numeric-padded>" "01"
+      "<month-numeric>"    "1"
+      "<year>"             "2016"
+      "<year-2digit>"      "16"
+      "<era-long>"         "Anno Domini"
+      "<era-short>"        "AD"))
   
   (testing "12hr time"
-    (let [f (tongue/inst-formatter "hh:mm a" inst-strings)]
+    (let [f (tongue/inst-formatter "<hour12-padded>:<minutes-padded> <day-period>" strings)]
       (are [i s] (= (f i UTC) s)
         #inst "2016-01-01T00:00" "12:00 AM"
         #inst "2016-01-01T00:01" "12:01 AM"
@@ -44,23 +67,25 @@
         #inst "2016-01-01T13:00" "01:00 PM"
         #inst "2016-01-01T23:59" "11:59 PM")))
   
-  (testing "escaping"
-    (are [f s] (= ((tongue/inst-formatter f inst-strings) #inst "2016-01-02T03:04:05.006" UTC) s)
-      "hh:mm 'hh:mm' a" "03:04 hh:mm AM"
-      "hh:mm '' a" "03:04  AM"
-      "hh:mm 'h''m' a" "03:04 hm AM"))
+  (testing "template parsing"
+    (let [format (tongue/inst-formatter "< <day> of <month-numeric> > < <hour24-padded> >" {})]
+      (is (= "< 2 of 1 > < 03 >" (format #inst "2016-01-02T03:04:05.006" UTC)))))
   
+  (testing "unknown key"
+    (let [format (tongue/inst-formatter "<day> <unknwn>" {})]
+      (is (= "2 <unknwn>" (format #inst "2016-01-02" UTC)))))
+    
   (testing "timezones"
-    (are [i tz s] (= ((tongue/inst-formatter "yyyy-MM-dd HH:mm:ss" {}) i tz) s)
+    (are [i tz s] (= ((tongue/inst-formatter "<year>-<month-numeric-padded>-<day-padded> <hour24-padded>:<minutes-padded>:<seconds-padded>" {}) i tz) s)
       #inst "2016-07-09T12:30:55" UTC   "2016-07-09 12:30:55"
       #inst "2016-07-09T12:30:55" GMT+6 "2016-07-09 18:30:55"
       #inst "2016-07-09T23:30:55" GMT+6 "2016-07-10 05:30:55")))
 
 
 (deftest test-translate
-  (let [dicts { :en { :inst-long  (tongue/inst-formatter "MMMM d, yyyy 'at' h:mm a" inst-strings)
+  (let [dicts { :en { :inst-long  (tongue/inst-formatter "<month-long> <day>, <year> at <hour12>:<minutes-padded> <day-period>" strings)
                       :inst-subst "inst %1"
-                      :tongue/format-inst (tongue/inst-formatter "M/d/yy h:mm a" inst-strings) }
+                      :tongue/format-inst (tongue/inst-formatter "<month-numeric>/<day>/<year-2digit> <hour12>:<minutes-padded> <day-period>" strings) }
                 :ru { :inst-subst "момент %1" }}
         translate (tongue/build-translate dicts)]
     

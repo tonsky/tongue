@@ -16,6 +16,8 @@ Tongue is very simple yet capable:
 
 ## Setup
 
+[![tongue](https://img.shields.io/clojars/v/tongue.svg)](http://clojars.org/tongue) [![build status](https://img.shields.io/circleci/project/tonsky/tongue.svg)](https://circleci.com/gh/tonsky/tongue)
+
 Add to `project.clj`:
 
 ```clj
@@ -151,7 +153,6 @@ First, you’ll need locale strings:
     :months-short    ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"]
     :months-long     ["January" "February" "March" "April" "May" "June" "July" "August" "September" "October" "November" "December"]
     :day-periods     ["AM" "PM"]
-    :eras-narrow     ["B" "A"]
     :eras-short      ["BC" "AD"]
     :eras-long       ["Before Christ" "Anno Domini"] })
 ```
@@ -162,7 +163,7 @@ Then build a datetime formatter:
 
 ```clj
 (def format-inst ;; [inst] | [inst tz] => string
-  (tongue/inst-formatter "MMM d, yyyy 'at' h:mm a" inst-strings-en))
+  (tongue/inst-formatter "<month-short> <day>, <year> at <hour12>:<minutes-padded> <day-period>" inst-strings-en))
 ```
 
 And it’s ready to use:
@@ -177,23 +178,23 @@ And it’s ready to use:
 
 `tongue.core/inst-formatter` builds a function that has two arities: just instant or instant and timezone:
 
-|  | Clojure | ClojureScript |
-| --- | --- | --- |
-| type of instant | `java.util.Date` | `js/Date` |
+|                  | Clojure              | ClojureScript |
+| ---------------- | -------------------- | --------- |
+| type of instant  | `java.util.Date`     | `js/Date` |
 | type of timezone | `java.util.Timezone` | integer GMT offset in minutes, e.g. `360` for GMT+6 |
-| if tz is omitted | assume UTC | assume browser timezone |
+| if tz is omitted | assume UTC           | assume browser timezone |
 
 As with numbers, put a `:tongue/format-inst` key into dictionary to get default formatting for datetime substitutions:
 
 ```clj
 (def dicts
-  { :en { :tongue/format-inst (tongue/inst-formatter "MMM d, yyyy" inst-strings-en)
+  { :en { :tongue/format-inst (tongue/inst-formatter "<month-short> <day>, <year>" inst-strings-en)
           :pub-ts "Published at %1" } })
 
 (def translate
   (tongue/build-translate dicts))
 
-;; if locale has :tongue/format-inst key, substituted instants will be formatted
+;; if locale has :tongue/format-inst key, substituted instants will be formatted using it
 (translate :en :put-ts #inst "2016-01-01") ;; => "Published at January 1, 2016"
 ```
 
@@ -201,57 +202,63 @@ Use multiple keys if you need several datetime format options:
 
 ```clj
 (def dicts
-  { :en { :inst-full  (tongue/inst-formatter "MMM d, yyyy 'at' h:mm a" inst-strings-en)
-          :inst-short (tongue/inst-formatter "M/d h:mm a" inst-strings-en)
-          :date-full  (tongue/inst-formatter "MMM d, yyyy" inst-strings-en)
-          :date-short (tongue/inst-formatter "M/d/yy" inst-strings-en) }})
+  { :en 
+    { :date-full  (tongue/inst-formatter "<month-long> <day>, <year>" inst-strings-en)
+      :date-short (tongue/inst-formatter "<month-numeric>/<day>/<year-2digit>" inst-strings-en)
+      :time-military (tongue/inst-formatter "<hour24-padded><minutes-padded>)}})
 
 (def translate (tongue/build-translate dicts))
 
 (translate :en :date-full #inst "2016-01-01") ;; => "January 1, 2016"
 (translate :en :date-short #inst "2016-01-01") ;; => "1/1/16"
+(translate :en :time-military #inst "2016-01-01T15:00:00") ;; => "1500"
 
 ;; You can use timezones too
 (def tz (java.util.TimeZone/getTimeZone "Asia/Novosibirsk"))
-(translate :en :inst-short #inst "2016-01-01T12:00:00+06:00" tz) ;; => "January 1, 2016 at 12:00 PM"
+(translate :en :time-military #inst "2016-01-01T12:00:00+06:00" tz) ;; => "1200"
 ```
 
 
 Full list of formatting options:
 
-| Code | Meaning |
-| ---- | ------- |
-| `HH` | Hour (00-23), padded |
-| `H` | Hour (0-23) |
-| `hh` | Hour (01-12), padded |
-| `h` | Hour (1-12) |
-| `a` | AM/PM from `:day-periods` |
-| `mm` | Minutes (00-59), padded |
-| `m` | Minutes (0-59) |
-| `ss` | Seconds (00-59), padded |
-| `s` | Seconds (0-59) |
-| `S` | Milliseconds (000-999), padded |
-| `eeeee` | `:weekdays-narrow` |
-| `eeee` | `:weekdays-long` |
-| `eee` | `:weekdays-short` |
-| `ee` | Weekday (01-07, Sunday = 01), padded |
-| `e` | Weekday (1-7, Sunday = 1) |
-| `dd` | Day of month (01-31), padded |
-| `d` | Day of month (1-31) |
-| `MMMMM` | `:months-narrow` |
-| `MMMM` | `:months-long` |
-| `MMM` | `:months-short` |
-| `MM` | Month (01-12, January = 01), padded |
-| `M` | Month (1-12, January = 1) |
-| `yyyy` | Full year (0-9999) |
-| `yy` | Last two digits of a year (00-99) |
-| `GGGGG` | `:eras-narrow` |
-| `GGGG` | `:eras-long` |
-| `GGG` | `:eras-short` |
-| `'...'` | anything in single quotes is escaped |
+| Code                 | Example        | Meaning              | 
+| -------------------- | -------------- | -------------------- |
+| `<hour24-padded>`    | 00, 09, 12, 23 | Hour (00-23), padded |
+| `<hour24>`           | 0, 9, 12, 23   | Hour (0-23) |
+| `<hour12-padded>`    | 12, 09, 12, 11 | Hour (01-12), padded |
+| `<hour12>`           | 12, 9, 12, 11  | Hour (1-12) |
+| `<day-period>`       | AM, PM         | AM/PM from `:day-periods` |
+| `<minutes-padded>`   | 00, 30, 59     | Minutes (00-59), padded |
+| `<minutes>`          | 0, 30, 59      | Minutes (0-59) |
+| `<seconds-padded>`   | 0, 30, 59      | Seconds (00-60), padded |
+| `<seconds>`          | 00, 30, 59     | Seconds (0-60) |
+| `<milliseconds>`     | 000, 123, 999  | Milliseconds (000-999), always padded |
+| `<weekday-long>`     | Wednesday      | Taken from `:weekdays-long` |
+| `<weekday-short>`    | Wed, Thu       | Taken from `:weekdays-short` |
+| `<weekday-narrow>`   | W, T           | Taken from `:weekdays-narrow` |
+| `<weekday-numeric>`  | 1, 4, 5, 7     | Weekday (1-7, Sunday = 1) |
+| `<day-padded>`       | 01, 15, 29     | Day of month (01-31), padded |
+| `<day>`              | 1, 15, 29      | Day of month (1-31) |
+| `<month-long>`       | January        | Taken from `:months-long` |
+| `<month-short>`      | Jan, Feb       | Taken from `:months-short` |
+| `<month-narrow>`     | J, F           | Taken from `:months-narrow` |
+| `<month-numeric-padded>` | 01, 02, 12 | Month (01-12, January = 01), padded |
+| `<month-numeric>`    | 1, 2, 12       | Month (1-12, January = 1) |
+| `<year>`             | 1999, 2016     | Full year (0-9999) |
+| `<year-2digit>`      | 99, 16         | Last two digits of a year (00-99) |
+| `<era-long>`         | Anno Domini    | Taken from `:eras-long` |
+| `<era-short>`        | BC, AD         | Taken from `:eras-short` |
+| `...`                | ...            | anything not in `<>` is printed as-is |
 
 
 ## Changes
+
+### WIP
+
+- Date/time formatting
+- ClojureScript now runs tests too
+- clojure.spec 1.9.0-alpha10
+- Disabled spec for ClojureScript
 
 ### 0.1.1
 
