@@ -3,8 +3,9 @@
     [clojure.string :as str]
     [tongue.inst :as inst]
     [tongue.number :as number]
+    [tongue.macro :as macro]
     #?(:clj [clojure.future :refer [simple-keyword? inst?]])
-    [#?(:clj clojure.spec :cljs cljs.spec) :as spec]))
+    #?(:clj [clojure.spec :as spec])))
 
 
 (def inst-formatter inst/formatter)
@@ -63,25 +64,29 @@
     :else       (str x)))
 
 
-(spec/def ::locale simple-keyword?)
-(spec/def ::key keyword?)
+(macro/with-spec
+  (spec/def ::locale simple-keyword?)
+  (spec/def ::key keyword?))
 
 
 (defn- translate
   ([dicts locale key]
-    (spec/assert ::locale locale)
-    (spec/assert ::key key)
+    (macro/with-spec
+      (spec/assert ::locale locale)
+      (spec/assert ::key key))
     (let [t (lookup-template dicts locale key)]
       (if (ifn? t) (t) t)))
   ([dicts locale key x]
-    (spec/assert ::locale locale)
-    (spec/assert ::key key)
+    (macro/with-spec
+      (spec/assert ::locale locale)
+      (spec/assert ::key key))
     (let [t (lookup-template dicts locale key)
           s (if (ifn? t) (t x) t)]
       (str/replace s #"%1" (format-argument dicts locale x))))
   ([dicts locale key x & rest]
-    (spec/assert ::locale locale)
-    (spec/assert ::key key)
+    (macro/with-spec
+      (spec/assert ::locale locale)
+      (spec/assert ::key key))
     (let [args (cons x rest)
           t    (lookup-template dicts locale key)
           s    (if (ifn? t) (apply t x rest) t)]
@@ -111,37 +116,31 @@
              {} lang->dict))
 
 
-(spec/def ::template (spec/or :str string?
-                              :fn ifn?))
+(macro/with-spec
+  (spec/def ::template (spec/or :str string?
+                                :fn ifn?))
 
-(spec/def :tongue/format-number ifn?)
-(spec/def :tongue/format-inst ifn?)
+  (spec/def :tongue/format-number ifn?)
+  (spec/def :tongue/format-inst ifn?)
 
-(spec/def ::dict (spec/and
-                   (spec/keys :opt [:tongue/format-number :tongue/format-inst])
-                   (spec/map-of keyword? (spec/or :plain  ::template
-                                                  :nested (spec/map-of keyword? ::template)))))
+  (spec/def ::dict (spec/and
+                     (spec/keys :opt [:tongue/format-number :tongue/format-inst])
+                     (spec/map-of keyword? (spec/or :plain  ::template
+                                                    :nested (spec/map-of keyword? ::template)))))
 
-(spec/def :tongue/fallback keyword?)
-(spec/def ::dicts (spec/and
-                    (spec/keys :opt [:tongue/fallback])
-                    (spec/conformer #(dissoc % :tongue/fallback))
-                    (spec/map-of keyword? ::dict)))
-
-
-(spec/def ::translate
-  (spec/fspec
-    :args (spec/cat :locale keyword?
-                    :key keyword?
-                    :args (spec/* ::spec/any))
-    :ret  string?))
+  (spec/def :tongue/fallback keyword?)
+  (spec/def ::dicts (spec/and
+                      (spec/keys :opt [:tongue/fallback])
+                      (spec/conformer #(dissoc % :tongue/fallback))
+                      (spec/map-of keyword? ::dict))))
 
 
 (defn build-translate
   "Given dicts, builds translate function closed over these dicts:
    (build-translate dicts) => ( [locale key & args] => string )"
   [dicts]
-  (spec/assert ::dicts dicts)
+  (macro/with-spec
+    (spec/assert ::dicts dicts))
   (let [compiled-dicts (build-dicts dicts)]
     (fn
       ([locale key] (translate compiled-dicts locale key))

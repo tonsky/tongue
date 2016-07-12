@@ -2,7 +2,8 @@
   (:require
     [clojure.string :as str]
     #?(:clj [clojure.future :refer [simple-keyword? inst?]])
-    [#?(:clj clojure.spec :cljs cljs.spec) :as spec])
+    [tongue.macro :as macro]
+    #?(:clj [clojure.spec :as spec]))
   #?(:clj
       (:import
         [java.util Calendar])))
@@ -23,7 +24,7 @@
 
 (defn hour24 [c]
   #?(:clj  (.get ^Calendar c Calendar/HOUR_OF_DAY)
-     :cljs (.getHours t)))
+     :cljs (.getHours c)))
 
 
 (defn hour12 [c]
@@ -117,28 +118,29 @@
 #?(:clj (def ^:private UTC (java.util.TimeZone/getTimeZone "UTC")))
 
 
+(macro/with-spec
+  (spec/def ::weekdays-narrow (spec/coll-of string? :count 7))
+  (spec/def ::weekdays-short  (spec/coll-of string? :count 7))
+  (spec/def ::weekdays-long   (spec/coll-of string? :count 7))
+  (spec/def ::months-narrow   (spec/coll-of string? :count 12))
+  (spec/def ::months-short    (spec/coll-of string? :count 12))
+  (spec/def ::months-long     (spec/coll-of string? :count 12))
+  (spec/def ::day-periods     (spec/coll-of string? :count 2))
+  (spec/def ::eras-narrow     (spec/coll-of string? :count 2))
+  (spec/def ::eras-short      (spec/coll-of string? :count 2))
+  (spec/def ::eras-long       (spec/coll-of string? :count 2))
 
-(spec/def ::weekdays-narrow (spec/coll-of string? :count 7))
-(spec/def ::weekdays-short  (spec/coll-of string? :count 7))
-(spec/def ::weekdays-long   (spec/coll-of string? :count 7))
-(spec/def ::months-narrow   (spec/coll-of string? :count 12))
-(spec/def ::months-short    (spec/coll-of string? :count 12))
-(spec/def ::months-long     (spec/coll-of string? :count 12))
-(spec/def ::day-periods     (spec/coll-of string? :count 2))
-(spec/def ::eras-narrow     (spec/coll-of string? :count 2))
-(spec/def ::eras-short      (spec/coll-of string? :count 2))
-(spec/def ::eras-long       (spec/coll-of string? :count 2))
-
-(spec/def ::pattern string?)
-(spec/def ::strings
-  (spec/keys :opt-un [::weekdays-narrow ::weekdays-short ::weekdays-long ::months-narrow ::months-short ::months-long ::day-periods ::eras-narrow ::eras-short ::eras-long]))
+  (spec/def ::pattern string?)
+  (spec/def ::strings
+    (spec/keys :opt-un [::weekdays-narrow ::weekdays-short ::weekdays-long ::months-narrow ::months-short ::months-long ::day-periods ::eras-narrow ::eras-short ::eras-long])))
 
 
 (defn formatter
   [pattern strings]
-  
-  (spec/assert ::pattern pattern)
-  (spec/assert ::strings strings)
+
+  (macro/with-spec
+    (spec/assert ::pattern pattern)
+    (spec/assert ::strings strings))
   
   (let [tokens (->> (re-seq #"(?:'([^']*)'|HH|H|hh|h|a|mm|m|ss|s|S|e{1,5}|dd|d|M{1,5}|yyyy|yy|G{3,5}|([^HhamsSedMyG']+)|([^']))" pattern)
                     (map (fn [[a b c d]]
@@ -146,11 +148,13 @@
     #?(:clj
         (fn format
           ([t] 
-            (spec/assert inst? t)
+            (macro/with-spec
+              (spec/assert inst? t))
             (format t UTC))
           ([t tz]
-            (spec/assert inst? t)
-            (spec/assert #(instance? java.util.TimeZone %) tz)
+            (macro/with-spec
+              (spec/assert inst? t)
+              (spec/assert #(instance? java.util.TimeZone %) tz))
             (let [cal (doto (Calendar/getInstance)
                         (.setTimeZone tz)
                         (.setTime t))
@@ -163,11 +167,13 @@
        :cljs
         (fn format
           ([t]
-            (spec/assert inst? t)
+            (macro/with-spec
+              (spec/assert inst? t))
             (reduce (fn [s token] (str s (format-token strings token t))) "" tokens))
           ([t tz-offset-min]
-            (spec/assert inst? t)
-            (spec/assert #(spec/int-in-range? -1440 1440 %)  tz-offset-min)
+            (macro/with-spec
+              (spec/assert inst? t)
+              (spec/assert #(spec/int-in-range? -1440 1440 %)  tz-offset-min))
             (let [default-offset-min (- (.getTimezoneOffset t))
                   corrected-t        (if (== default-offset-min tz-offset-min)
                                        t

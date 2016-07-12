@@ -5,10 +5,24 @@
                  :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [
     [org.clojure/clojure "1.8.0" :scope "provided"]
-    [clojure-future-spec "1.9.0-alpha9-1"]
+    [org.clojure/clojurescript "1.9.89" :scope "provided"]
+    [clojure-future-spec "1.9.0-alpha10"]
   ]
+  
+  :plugins [[lein-cljsbuild "1.1.3"]]
+  
   :profiles {
-    :test {
+    :dev {
       :jvm-opts ["-Dclojure.spec.check-asserts=true"]
-  }})
+  }}
+  
+  :cljsbuild
+  { :builds
+    [{ :id "test"
+       :source-paths ["src" "test"]
+       :compiler
+       { :main           tongue.test
+         :output-to      "target/test.js"
+         :optimizations  :advanced
+         :parallel-build true }}]})
   
