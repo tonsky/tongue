@@ -6,12 +6,14 @@ Tongue is a do-it-yourself i18n library for Clojure and ClojureScript.
 
 Tongue is very simple yet capable:
 
-- It comes with no built-in knowledge of world locales. It has all the tooling for you to define locales yourself thought.
 - Dictionaries are just Clojure maps.
 - Translations are either strings, template strings or arbitrary functions.
+- It comes with no built-in knowledge of world locales. It has all the tooling for you to define locales yourself though.
 - It can be used from both Clojure and ClojureScript.
 
 In contrast with other i18n solutions relying on complex and limiting string-based syntax for defining pluralization, wording, special cases etc, Tongue lets you use arbitrary functions. It gives you convenience, code reuse and endless possibilities.
+
+As a result you have a library that handles exaclty your case well with as much detail and precision as you need.
 
 ### Who’s using Tongue?
 
