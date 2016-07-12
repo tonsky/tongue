@@ -1,4 +1,4 @@
-(defproject tongue "0.1.2"
+(defproject tongue "0.1.3"
   :description  "DIY i18n library for Clojure/Script"
   :url          "https://github.com/tonsky/tongue"
   :license      {:name "Eclipse Public License"
@@ -8,6 +8,8 @@
     [org.clojure/clojurescript "1.9.89" :scope "provided"]
     [clojure-future-spec "1.9.0-alpha10"]
   ]
+  
+  :global-vars { *warn-on-reflection* true }
   
   :plugins [[lein-cljsbuild "1.1.3"]]
   

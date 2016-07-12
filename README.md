@@ -11,7 +11,7 @@ Tongue is very simple yet capable:
 - Translations are either strings, template strings or arbitrary functions.
 - It can be used from both Clojure and ClojureScript.
 
-In contrast with other i18n solutions relying on comlex and limiting string-based syntax for defining pluralization, wording, special cases etc, Tongue lets you use arbitrary functions. It gives you convenience, code reuse and endless possibilities.
+In contrast with other i18n solutions relying on complex and limiting string-based syntax for defining pluralization, wording, special cases etc, Tongue lets you use arbitrary functions. It gives you convenience, code reuse and endless possibilities.
 
 ### Who’s using Tongue?
 
@@ -22,7 +22,7 @@ In contrast with other i18n solutions relying on comlex and limiting string-base
 Add to `project.clj`:
 
 ```clj
-[tongue "0.1.2"]
+[tongue "0.1.3"]
 ```
 
 In production:
@@ -181,7 +181,7 @@ And it’s ready to use:
 
 |                  | Clojure              | ClojureScript |
 | ---------------- | -------------------- | --------- |
-| instant          | `java.util.Date`     | `js/Date` |
+| instant: `clojure.core/Inst` protocol implementations | `java.util.Date`, `java.time.Instant`, ...     | `js/Date`, ... |
 | timezone         | `java.util.Timezone` | integer GMT offset in minutes, e.g. `360` for GMT+6 |
 | if tz is omitted | assume UTC           | assume browser timezone |
 
@@ -253,6 +253,10 @@ Full list of formatting options:
 
 
 ## Changes
+
+### 0.1.3
+
+- Date/time formatting can accept arbitrary `Inst` protocol implementations
 
 ### 0.1.2
 

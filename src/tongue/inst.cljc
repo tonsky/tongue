@@ -1,7 +1,7 @@
 (ns tongue.inst
   (:require
     [clojure.string :as str]
-    #?(:clj [clojure.future :refer [simple-keyword? inst?]])
+    #?(:clj [clojure.future :refer [simple-keyword? inst? inst-ms]])
     [tongue.macro :as macro]
     #?(:clj [clojure.spec :as spec]))
   #?(:clj
@@ -71,33 +71,33 @@
     0 1))
 
 
-(defn format-token [strings token c]
+(defn format-token ^String [strings token c]
   (case token
     :hour24-padded   (pad2 (hour24 c))
-    :hour24          (hour24 c)
+    :hour24          (str (hour24 c))
     :hour12-padded   (pad2 (hour12 c))
-    :hour12          (hour12 c)
+    :hour12          (str (hour12 c))
     :day-period      (nth (:day-periods strings) (if (< (hour24 c) 12) 0 1))
     :minutes-padded  (pad2 (minutes c))
-    :minutes         (minutes c)
+    :minutes         (str (minutes c))
     :seconds-padded  (pad2 (seconds c))
-    :seconds         (seconds c)
+    :seconds         (str (seconds c))
     :milliseconds    (pad3 (milliseconds c))
     :weekday-long    (nth (:weekdays-long strings)   (day-of-week c))
     :weekday-short   (nth (:weekdays-short strings)  (day-of-week c))
     :weekday-narrow  (nth (:weekdays-narrow strings) (day-of-week c))
-    :weekday-numeric (inc (day-of-week c))
+    :weekday-numeric (str (inc (day-of-week c)))
     :day-padded      (pad2 (day-of-month c))
-    :day             (day-of-month c)
-    :month-long      (nth (:months-long strings) (month c))
-    :month-short     (nth (:months-short strings) (month c))
+    :day             (str (day-of-month c))
+    :month-long      (nth (:months-long strings)   (month c))
+    :month-short     (nth (:months-short strings)  (month c))
     :month-narrow    (nth (:months-narrow strings) (month c))
     :month-numeric-padded (pad2 (inc (month c)))
-    :month-numeric   (inc (month c))
-    :year            (year c)
+    :month-numeric   (str (inc (month c)))
+    :year            (str (year c))
     :year-2digit     (pad2 (mod (year c) 100))
-    :era-long        (nth (:eras-long strings)   (era c))
-    :era-short       (nth (:eras-short strings)  (era c))
+    :era-long        (nth (:eras-long strings)  (era c))
+    :era-short       (nth (:eras-short strings) (era c))
     (if (string? token)
       token
       (str "<" (name token) ">"))))
@@ -122,6 +122,11 @@
     (spec/keys :opt-un [::weekdays-narrow ::weekdays-short ::weekdays-long ::months-narrow ::months-short ::months-long ::day-periods ::eras-short ::eras-long])))
 
 
+#?(:cljs
+    (defn inst->date [inst]
+      (if (instance? js/Date inst)
+        inst
+        (js/Date. (inst-ms inst)))))
 
 
 (defn formatter
@@ -145,26 +150,31 @@
               (spec/assert #(instance? java.util.TimeZone %) tz))
             (let [cal (doto (Calendar/getInstance)
                         (.setTimeZone tz)
-                        (.setTime t))
-                  sb (StringBuilder.)]
-              (->> tokens
-                   (reduce (fn [sb token]
-                             (.append sb ^String (format-token strings token cal)))
-                           sb)
-                   (.toString)))))
+                        (.setTimeInMillis (inst-ms t)))]
+              (str
+                (reduce
+                  (fn [^StringBuilder sb token]
+                    (.append sb (format-token strings token cal)))
+                  (StringBuilder.)
+                  tokens)))))
        :cljs
         (fn format
           ([t]
             (macro/with-spec
               (spec/assert inst? t))
-            (reduce (fn [s token] (str s (format-token strings token t))) "" tokens))
+            (let [date (inst->date t)]
+              (reduce
+                (fn [s token]
+                  (str s (format-token strings token date)))
+                "" tokens)))
           ([t tz-offset-min]
             (macro/with-spec
               (spec/assert inst? t)
               (spec/assert #(spec/int-in-range? -1440 1440 %)  tz-offset-min))
-            (let [default-offset-min (- (.getTimezoneOffset t))
-                  corrected-t        (if (== default-offset-min tz-offset-min)
-                                       t
-                                       (js/Date. (+ (.getTime t)
-                                                    (* 60000 (- tz-offset-min default-offset-min)))))]
+            (let [date              (inst->date t)
+                  system-offset-min (- (.getTimezoneOffset date))
+                  corrected-t       (if (== system-offset-min tz-offset-min)
+                                      date
+                                      (js/Date. (+ (inst-ms date)
+                                                   (* 60000 (- tz-offset-min system-offset-min)))))]
               (format corrected-t)))))))
