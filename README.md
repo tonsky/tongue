@@ -90,7 +90,7 @@ And go use it:
 (translate :en :animals/dog) ;; => "Dog", taken from { :en { :animals { :dog "Dog }}}
 
 ;; substitutions
-(translate :en :welcome "Nikita") ;; => "Welcome, Nikita!"
+(translate :en :welcome "Nikita") ;; => "Hello, Nikita!"
 (translate :en :between 0 100) ;; => "Value must be between 0 and 100"
 
 ;; if key resolves to fn, it will be called with provided arguments
