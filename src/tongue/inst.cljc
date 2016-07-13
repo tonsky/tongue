@@ -77,7 +77,7 @@
     :hour24          (str (hour24 c))
     :hour12-padded   (pad2 (hour12 c))
     :hour12          (str (hour12 c))
-    :day-period      (nth (:day-periods strings) (if (< (hour24 c) 12) 0 1))
+    :dayperiod       (nth (:dayperiods strings) (if (< (hour24 c) 12) 0 1))
     :minutes-padded  (pad2 (minutes c))
     :minutes         (str (minutes c))
     :seconds-padded  (pad2 (seconds c))
@@ -100,7 +100,7 @@
     :era-short       (nth (:eras-short strings) (era c))
     (if (string? token)
       token
-      (str "<" (name token) ">"))))
+      (str "{" (name token) "}"))))
 
 
 #?(:clj (def ^:private UTC (java.util.TimeZone/getTimeZone "UTC")))
@@ -113,13 +113,13 @@
   (spec/def ::months-narrow   (spec/coll-of string? :count 12))
   (spec/def ::months-short    (spec/coll-of string? :count 12))
   (spec/def ::months-long     (spec/coll-of string? :count 12))
-  (spec/def ::day-periods     (spec/coll-of string? :count 2))
+  (spec/def ::dayperiods      (spec/coll-of string? :count 2))
   (spec/def ::eras-short      (spec/coll-of string? :count 2))
   (spec/def ::eras-long       (spec/coll-of string? :count 2))
 
   (spec/def ::template string?)
   (spec/def ::strings
-    (spec/keys :opt-un [::weekdays-narrow ::weekdays-short ::weekdays-long ::months-narrow ::months-short ::months-long ::day-periods ::eras-short ::eras-long])))
+    (spec/keys :opt-un [::weekdays-narrow ::weekdays-short ::weekdays-long ::months-narrow ::months-short ::months-long ::dayperiods ::eras-short ::eras-long])))
 
 
 #?(:cljs
@@ -136,7 +136,7 @@
     (spec/assert ::template template)
     (spec/assert ::strings strings))
   
-  (let [tokens (->> (re-seq #"(?:<([^<> ]+)>|[<]|[^<]*)" template)
+  (let [tokens (->> (re-seq #"(?:\{([^{} ]+)\}|\{|[^{]*)" template)
                     (map (fn [[string code]] (if code (keyword code) string))))]
     #?(:clj
         (fn format

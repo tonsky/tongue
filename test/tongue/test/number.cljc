@@ -26,20 +26,20 @@
 
 
 (deftest test-translate
-  (let [dicts { :en { :num    "num %1"
-                      :nums   "nums %1 %2"
+  (let [dicts { :en { :num    "num {1}"
+                      :nums   "nums {1} {2}"
                       :plural (fn [x]
                                 (cond
                                   (zero? x) "no items"
-                                  (= 1 x)   "%1 item"
-                                  :else     "%1 items"))
+                                  (= 1 x)   "{1} item"
+                                  :else     "{1} items"))
                       :tongue/format-number (tongue/number-formatter { :decimal "." :group "," }) }
-                :ru { :num "число %1"
+                :ru { :num "число {1}"
                       :plural (fn [x]
                                 (cond
                                   (zero? x) "ничего"
-                                  (= 1 x)   "%1 штука"
-                                  :else     "%1 штук"))
+                                  (= 1 x)   "{1} штука"
+                                  :else     "{1} штук"))
                       :tongue/format-number (tongue/number-formatter { :decimal "," :group " " }) }
                 :tongue/fallback :en }
         translate (tongue/build-translate dicts)]
@@ -57,8 +57,8 @@
       :ru    :plural [1000]    "1 000 штук"))
 
   
-  (let [t (tongue/build-translate { :en { :key "%1 value" }
-                                    :ru { :key "%1 значение"
+  (let [t (tongue/build-translate { :en { :key "{1} value" }
+                                    :ru { :key "{1} значение"
                                           :tongue/format-number (tongue/number-formatter { :decimal "," :group " " })}
                                     :tongue/fallback :ru })]
     ;; number format shouldn’t look into fallback

@@ -11,10 +11,11 @@
 (def inst-formatter inst/formatter)
 
 
-(def format-inst-iso (inst-formatter "<year>-<month-numeric-padded>-<day-padded>T<hour24-padded>:<minutes-padded>:<seconds-padded>" {}))
+(def format-inst-iso (inst-formatter "{year}-{month-numeric-padded}-{day-padded}T{hour24-padded}:{minutes-padded}:{seconds-padded}" {}))
 
 
 (def number-formatter number/formatter)
+
 
 (defn- parse-long [s]
   #?(:cljs (js/parseInt s)
@@ -50,7 +51,7 @@
 (defn- lookup-template [dicts locale key]
   (or (lookup-template-for-locale dicts locale key)
       (lookup-template-for-locale dicts (:tongue/fallback dicts) key)
-      (str "|Missing key " key "|")))
+      (str "{Missing key " key "}")))
 
 
 (defn- format-argument [dicts locale x]
@@ -82,7 +83,7 @@
       (spec/assert ::key key))
     (let [t (lookup-template dicts locale key)
           s (if (ifn? t) (t x) t)]
-      (str/replace s #"%1" (format-argument dicts locale x))))
+      (str/replace s #"\{1\}" (format-argument dicts locale x))))
   ([dicts locale key x & rest]
     (macro/with-spec
       (spec/assert ::locale locale)
@@ -90,10 +91,10 @@
     (let [args (cons x rest)
           t    (lookup-template dicts locale key)
           s    (if (ifn? t) (apply t x rest) t)]
-      (str/replace s #"%(\d+)" (fn [[_ n]]
-                                 (let [idx (dec (parse-long n))
-                                       arg (nth args idx)]
-                                   (format-argument dicts locale arg)))))))
+      (str/replace s #"\{(\d+)\}" (fn [[_ n]]
+                                  (let [idx (dec (parse-long n))
+                                        arg (nth args idx)]
+                                    (format-argument dicts locale arg)))))))
 
 
 (defn- build-dict
@@ -109,11 +110,11 @@
     {} dict))
 
 
-(defn- build-dicts
-  [lang->dict]
-  (reduce-kv (fn [acc lang dict]
-               (assoc acc lang (if (map? dict) (build-dict dict) dict)))
-             {} lang->dict))
+(defn- build-dicts [dicts]
+  (reduce-kv 
+    (fn [acc lang dict]
+      (assoc acc lang (if (map? dict) (build-dict dict) dict)))
+    {} dicts))
 
 
 (macro/with-spec
@@ -143,7 +144,7 @@
     (spec/assert ::dicts dicts))
   (let [compiled-dicts (build-dicts dicts)]
     (fn
-      ([locale key] (translate compiled-dicts locale key))
+      ([locale key]   (translate compiled-dicts locale key))
       ([locale key x] (translate compiled-dicts locale key x))
       ([locale key x & args]
         (apply translate compiled-dicts locale key x args)))))

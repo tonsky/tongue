@@ -8,8 +8,10 @@ Tongue is very simple yet capable:
 
 - Dictionaries are just Clojure maps.
 - Translations are either strings, template strings or arbitrary functions.
+- No additional build steps, no runtime resource loading.
 - It comes with no built-in knowledge of world locales. It has all the tooling for you to define locales yourself though.
-- It can be used from both Clojure and ClojureScript.
+- Pure Clojure implementation, no dependencies.
+- Can be used from both Clojure and ClojureScript.
 
 In contrast with other i18n solutions relying on complex and limiting string-based syntax for defining pluralization, wording, special cases etc, Tongue lets you use arbitrary functions. It gives you convenience, code reuse and endless possibilities.
 
@@ -24,7 +26,7 @@ As a result you have a library that handles exaclty your case well with as much 
 Add to `project.clj`:
 
 ```clj
-[tongue "0.1.3"]
+[tongue "0.1.4"]
 ```
 
 In production:
@@ -57,15 +59,15 @@ Define dictionaries:
                      :cat "Cat" } ;; => :animals/cat
                      
           ;; substitutions
-          :welcome "Hello, %1!"
-          :between "Value must be between %1 and %2"
+          :welcome "Hello, {1}!"
+          :between "Value must be between {1} and {2}"
           
           ;; arbitrary functions
           :count (fn [x]
                    (cond
                      (zero? x) "No items"
                      (= 1 x)   "1 item"
-                     :else     "%1 items")) ;; you can return string with substitutions
+                     :else     "{1} items")) ;; you can return string with substitutions
         }
                    
     :en-GB { :color "colour" } ;; sublang overrides
@@ -125,10 +127,10 @@ Use it directly or add `:tongue/format-number` key to locale’s dictionary. Tha
 ```clj
 (def dicts
   { :en { :tongue/format-number format-number-en
-          :count "%1 items" }
+          :count "{1} items" }
     :ru { :tongue/format-number (tongue/number-formatter { :group " "
                                                            :decimal "," })
-          :count "%1 штук" }})
+          :count "{1} штук" }})
 
 (def translate
   (tongue/build-translate dicts))
@@ -155,7 +157,7 @@ First, you’ll need locale strings:
     :months-narrow   ["J" "F" "M" "A" "M" "J" "J" "A" "S" "O" "N" "D"]
     :months-short    ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"]
     :months-long     ["January" "February" "March" "April" "May" "June" "July" "August" "September" "October" "November" "December"]
-    :day-periods     ["AM" "PM"]
+    :dayperiods      ["AM" "PM"]
     :eras-short      ["BC" "AD"]
     :eras-long       ["Before Christ" "Anno Domini"] })
 ```
@@ -166,7 +168,7 @@ Then build a datetime formatter:
 
 ```clj
 (def format-inst ;; [inst] | [inst tz] => string
-  (tongue/inst-formatter "<month-short> <day>, <year> at <hour12>:<minutes-padded> <day-period>" inst-strings-en))
+  (tongue/inst-formatter "{month-short} {day}, {year} at {hour12}:{minutes-padded} {dayperiod}" inst-strings-en))
 ```
 
 And it’s ready to use:
@@ -191,8 +193,8 @@ As with numbers, put a `:tongue/format-inst` key into dictionary to get default 
 
 ```clj
 (def dicts
-  { :en { :tongue/format-inst (tongue/inst-formatter "<month-short> <day>, <year>" inst-strings-en)
-          :published "Published at %1" } })
+  { :en { :tongue/format-inst (tongue/inst-formatter "{month-short} {day}, {year}" inst-strings-en)
+          :published "Published at {1}" } })
 
 (def translate
   (tongue/build-translate dicts))
@@ -206,9 +208,9 @@ Use multiple keys if you need several datetime format options:
 ```clj
 (def dicts
   { :en 
-    { :date-full     (tongue/inst-formatter "<month-long> <day>, <year>" inst-strings-en)
-      :date-short    (tongue/inst-formatter "<month-numeric>/<day>/<year-2digit>" inst-strings-en)
-      :time-military (tongue/inst-formatter "<hour24-padded><minutes-padded>")}})
+    { :date-full     (tongue/inst-formatter "{month-long} {day}, {year}" inst-strings-en)
+      :date-short    (tongue/inst-formatter "{month-numeric}/{day}/{year-2digit}" inst-strings-en)
+      :time-military (tongue/inst-formatter "{hour24-padded}{minutes-padded}")}})
 
 (def translate (tongue/build-translate dicts))
 
@@ -226,35 +228,39 @@ Full list of formatting options:
 
 | Code                 | Example        | Meaning              | 
 | -------------------- | -------------- | -------------------- |
-| `<hour24-padded>`    | 00, 09, 12, 23 | Hour of day (00-23), 0-padded |
-| `<hour24>`           | 0, 9, 12, 23   | Hour of day (0-23) |
-| `<hour12-padded>`    | 12, 09, 12, 11 | Hour of day (01-12), 0-padded |
-| `<hour12>`           | 12, 9, 12, 11  | Hour of day (1-12) |
-| `<day-period>`       | AM, PM         | AM/PM from `:day-periods` |
-| `<minutes-padded>`   | 00, 30, 59     | Minutes (00-59), 0-padded |
-| `<minutes>`          | 0, 30, 59      | Minutes (0-59) |
-| `<seconds-padded>`   | 0, 30, 59      | Seconds (00-60), 0-padded |
-| `<seconds>`          | 00, 30, 59     | Seconds (0-60) |
-| `<milliseconds>`     | 000, 123, 999  | Milliseconds (000-999), always 0-padded |
-| `<weekday-long>`     | Wednesday      | Weekday from `:weekdays-long` |
-| `<weekday-short>`    | Wed, Thu       | Weekday from `:weekdays-short` |
-| `<weekday-narrow>`   | W, T           | Weekday from `:weekdays-narrow` |
-| `<weekday-numeric>`  | 1, 4, 5, 7     | Weekday number (1-7, Sunday = 1) |
-| `<day-padded>`       | 01, 15, 29     | Day of month (01-31), 0-padded |
-| `<day>`              | 1, 15, 29      | Day of month (1-31) |
-| `<month-long>`       | January        | Month from `:months-long` |
-| `<month-short>`      | Jan, Feb       | Month from `:months-short` |
-| `<month-narrow>`     | J, F           | Month from `:months-narrow` |
-| `<month-numeric-padded>` | 01, 02, 12 | Month number (01-12, January = 01), 0-padded |
-| `<month-numeric>`    | 1, 2, 12       | Month number (1-12, January = 1) |
-| `<year>`             | 1999, 2016     | Full year (0-9999) |
-| `<year-2digit>`      | 99, 16         | Last two digits of a year (00-99) |
-| `<era-long>`         | Anno Domini    | Era from `:eras-long` |
-| `<era-short>`        | BC, AD         | Era from `:eras-short` |
-| `...`                | ...            | anything not in `<>` is printed as-is |
+| `{hour24-padded}`    | 00, 09, 12, 23 | Hour of day (00-23), 0-padded |
+| `{hour24}`           | 0, 9, 12, 23   | Hour of day (0-23) |
+| `{hour12-padded}`    | 12, 09, 12, 11 | Hour of day (01-12), 0-padded |
+| `{hour12}`           | 12, 9, 12, 11  | Hour of day (1-12) |
+| `{dayperiod}`        | AM, PM         | AM/PM from `:dayperiods` |
+| `{minutes-padded}`   | 00, 30, 59     | Minutes (00-59), 0-padded |
+| `{minutes}`          | 0, 30, 59      | Minutes (0-59) |
+| `{seconds-padded}`   | 0, 30, 59      | Seconds (00-60), 0-padded |
+| `{seconds}`          | 00, 30, 59     | Seconds (0-60) |
+| `{milliseconds}`     | 000, 123, 999  | Milliseconds (000-999), always 0-padded |
+| `{weekday-long}`     | Wednesday      | Weekday from `:weekdays-long` |
+| `{weekday-short}`    | Wed, Thu       | Weekday from `:weekdays-short` |
+| `{weekday-narrow}`   | W, T           | Weekday from `:weekdays-narrow` |
+| `{weekday-numeric}`  | 1, 4, 5, 7     | Weekday number (1-7, Sunday = 1) |
+| `{day-padded}`       | 01, 15, 29     | Day of month (01-31), 0-padded |
+| `{day}`              | 1, 15, 29      | Day of month (1-31) |
+| `{month-long}`       | January        | Month from `:months-long` |
+| `{month-short}`      | Jan, Feb       | Month from `:months-short` |
+| `{month-narrow}`     | J, F           | Month from `:months-narrow` |
+| `{month-numeric-padded}` | 01, 02, 12 | Month number (01-12, January = 01), 0-padded |
+| `{month-numeric}`    | 1, 2, 12       | Month number (1-12, January = 1) |
+| `{year}`             | 1999, 2016     | Full year (0-9999) |
+| `{year-2digit}`      | 99, 16         | Last two digits of a year (00-99) |
+| `{era-long}`         | Anno Domini    | Era from `:eras-long` |
+| `{era-short}`        | BC, AD         | Era from `:eras-short` |
+| `...`                | ...            | anything not in `{}` is printed as-is |
 
 
 ## Changes
+
+### 0.1.4
+
+- Use unified `{}` syntax instead of `<...>`/`%x"
 
 ### 0.1.3
 

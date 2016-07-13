@@ -22,7 +22,7 @@
     :months-narrow   ["J" "F" "M" "A" "M" "J" "J" "A" "S" "O" "N" "D"]
     :months-short    ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"]
     :months-long     ["January" "February" "March" "April" "May" "June" "July" "August" "September" "October" "November" "December"]
-    :day-periods     ["AM" "PM"]
+    :dayperiods      ["AM" "PM"]
     :eras-short      ["BC" "AD"]
     :eras-long       ["Before Christ" "Anno Domini"] })
 
@@ -30,34 +30,34 @@
 (deftest test-format-inst
   (let [inst #inst "2016-01-02T03:04:05.006"]
     (are [f r] (= r ((tongue/inst-formatter f strings) inst UTC))
-      "<hour24-padded>"    "03"
-      "<hour24>"           "3"
-      "<hour12-padded>"    "03"
-      "<hour12>"           "3"
-      "<day-period>"       "AM"
-      "<minutes-padded>"   "04"
-      "<minutes>"          "4"
-      "<seconds-padded>"   "05"
-      "<seconds>"          "5"
-      "<milliseconds>"     "006"
-      "<weekday-long>"     "Saturday"
-      "<weekday-short>"    "Sat"
-      "<weekday-narrow>"   "S"
-      "<weekday-numeric>"  "7"
-      "<day-padded>"       "02"
-      "<day>"              "2"
-      "<month-long>"       "January"
-      "<month-short>"      "Jan"
-      "<month-narrow>"     "J"
-      "<month-numeric-padded>" "01"
-      "<month-numeric>"    "1"
-      "<year>"             "2016"
-      "<year-2digit>"      "16"
-      "<era-long>"         "Anno Domini"
-      "<era-short>"        "AD"))
+      "{hour24-padded}"        "03"
+      "{hour24}"               "3"
+      "{hour12-padded}"        "03"
+      "{hour12}"               "3"
+      "{dayperiod}"            "AM"
+      "{minutes-padded}"       "04"
+      "{minutes}"              "4"
+      "{seconds-padded}"       "05"
+      "{seconds}"              "5"
+      "{milliseconds}"         "006"
+      "{weekday-long}"         "Saturday"
+      "{weekday-short}"        "Sat"
+      "{weekday-narrow}"       "S"
+      "{weekday-numeric}"      "7"
+      "{day-padded}"           "02"
+      "{day}"                  "2"
+      "{month-long}"           "January"
+      "{month-short}"          "Jan"
+      "{month-narrow}"         "J"
+      "{month-numeric-padded}" "01"
+      "{month-numeric}"        "1"
+      "{year}"                 "2016"
+      "{year-2digit}"          "16"
+      "{era-long}"             "Anno Domini"
+      "{era-short}"            "AD"))
   
   (testing "12hr time"
-    (let [f (tongue/inst-formatter "<hour12-padded>:<minutes-padded> <day-period>" strings)]
+    (let [f (tongue/inst-formatter "{hour12-padded}:{minutes-padded} {dayperiod}" strings)]
       (are [i s] (= (f i UTC) s)
         #inst "2016-01-01T00:00" "12:00 AM"
         #inst "2016-01-01T00:01" "12:01 AM"
@@ -68,25 +68,25 @@
         #inst "2016-01-01T23:59" "11:59 PM")))
   
   (testing "template parsing"
-    (let [format (tongue/inst-formatter "< <day> of <month-numeric> > < <hour24-padded> >" {})]
-      (is (= "< 2 of 1 > < 03 >" (format #inst "2016-01-02T03:04:05.006" UTC)))))
+    (let [format (tongue/inst-formatter "{ {day} of {month-numeric} } { {hour24-padded} }" {})]
+      (is (= "{ 2 of 1 } { 03 }" (format #inst "2016-01-02T03:04:05.006" UTC)))))
   
   (testing "unknown key"
-    (let [format (tongue/inst-formatter "<day> <unknwn>" {})]
-      (is (= "2 <unknwn>" (format #inst "2016-01-02" UTC)))))
+    (let [format (tongue/inst-formatter "{day} {unknwn}" {})]
+      (is (= "2 {unknwn}" (format #inst "2016-01-02" UTC)))))
     
   (testing "timezones"
-    (are [i tz s] (= ((tongue/inst-formatter "<year>-<month-numeric-padded>-<day-padded> <hour24-padded>:<minutes-padded>:<seconds-padded>" {}) i tz) s)
+    (are [i tz s] (= ((tongue/inst-formatter "{year}-{month-numeric-padded}-{day-padded} {hour24-padded}:{minutes-padded}:{seconds-padded}" {}) i tz) s)
       #inst "2016-07-09T12:30:55" UTC   "2016-07-09 12:30:55"
       #inst "2016-07-09T12:30:55" GMT+6 "2016-07-09 18:30:55"
       #inst "2016-07-09T23:30:55" GMT+6 "2016-07-10 05:30:55")))
 
 
 (deftest test-translate
-  (let [dicts { :en { :inst-long  (tongue/inst-formatter "<month-long> <day>, <year> at <hour12>:<minutes-padded> <day-period>" strings)
-                      :inst-subst "inst %1"
-                      :tongue/format-inst (tongue/inst-formatter "<month-numeric>/<day>/<year-2digit> <hour12>:<minutes-padded> <day-period>" strings) }
-                :ru { :inst-subst "момент %1" }}
+  (let [dicts { :en { :inst-long  (tongue/inst-formatter "{month-long} {day}, {year} at {hour12}:{minutes-padded} {dayperiod}" strings)
+                      :inst-subst "inst {1}"
+                      :tongue/format-inst (tongue/inst-formatter "{month-numeric}/{day}/{year-2digit} {hour12}:{minutes-padded} {dayperiod}" strings) }
+                :ru { :inst-subst "момент {1}" }}
         translate (tongue/build-translate dicts)]
     
     (are [l k a t] (= (apply translate l k a) t)
