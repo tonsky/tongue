@@ -266,6 +266,10 @@ Full list of formatting options:
 
 ## Changes
 
+### 0.2.0
+
+- Removed clojure-future-spec, requires Clojure 1.9 or later
+
 ### 0.1.4
 
 - Use unified `{}` syntax instead of `<...>`/`%x"
