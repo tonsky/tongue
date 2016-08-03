@@ -4,7 +4,6 @@
     [tongue.inst :as inst]
     [tongue.number :as number]
     [tongue.macro :as macro]
-    #?(:clj [clojure.future :refer [simple-keyword? inst?]])
     #?(:clj [clojure.spec :as spec])))
 
 

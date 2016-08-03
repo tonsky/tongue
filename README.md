@@ -23,10 +23,18 @@ As a result you have a library that handles exaclty your case well with as much 
 
 ## Setup
 
-Add to `project.clj`:
+If you're using Clojure 1.8, add to `project.clj`:
 
 ```clj
+[org.clojure/clojure "1.8"]
 [tongue "0.1.4"]
+```
+
+If you want to try out 1.9 alpha, use `0.2.0` version of Tongue:
+
+```clj
+[org.clojure/clojure "1.9.0-alpha10"]
+[tongue "0.2.0"]
 ```
 
 In production:

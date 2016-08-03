@@ -1,7 +1,6 @@
 (ns tongue.inst
   (:require
     [clojure.string :as str]
-    #?(:clj [clojure.future :refer [simple-keyword? inst? inst-ms]])
     [tongue.macro :as macro]
     #?(:clj [clojure.spec :as spec]))
   #?(:clj
