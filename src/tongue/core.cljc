@@ -4,9 +4,13 @@
     [tongue.inst :as inst]
     [tongue.number :as number]
     [tongue.macro :as macro]
-    #?(:clj [clojure.future :refer [simple-keyword? inst?]])
     #?(:clj [clojure.spec :as spec])))
 
+#?(:clj
+   (if (and
+        (= 1 (:major *clojure-version*))
+        (> 9 (:minor *clojure-version*)))
+     (require '[clojure.future :refer [simple-keyword? inst?]])))
 
 (def inst-formatter inst/formatter)
 

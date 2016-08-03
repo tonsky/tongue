@@ -1,13 +1,17 @@
 (ns tongue.inst
   (:require
     [clojure.string :as str]
-    #?(:clj [clojure.future :refer [simple-keyword? inst? inst-ms]])
     [tongue.macro :as macro]
     #?(:clj [clojure.spec :as spec]))
   #?(:clj
       (:import
         [java.util Calendar])))
 
+#?(:clj
+   (if (and
+        (= 1 (:major *clojure-version*))
+        (> 9 (:minor *clojure-version*)))
+     (require '[clojure.future :refer [simple-keyword? inst? inst-ms]])))
 
 (defn- pad2 [i]
   (if (< i 10)
