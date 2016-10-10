@@ -15,7 +15,7 @@ Tongue is very simple yet capable:
 
 In contrast with other i18n solutions relying on complex and limiting string-based syntax for defining pluralization, wording, special cases etc, Tongue lets you use arbitrary functions. It gives you convenience, code reuse and endless possibilities.
 
-As a result you have a library that handles exaclty your case well with as much detail and precision as you need.
+As a result you have a library that handles exactly your case well with as much detail and precision as you need.
 
 ### Who’s using Tongue?
 
@@ -130,7 +130,7 @@ Tongue can help you build localized number formatters:
 (format-number-en 9999.9) ;; => "9,999.9"
 ```
 
-Use it directly or add `:tongue/format-number` key to locale’s dictionary. That way format will be applied to all numeric substituions:
+Use it directly or add `:tongue/format-number` key to locale’s dictionary. That way format will be applied to all numeric substitutions:
 
 ```clj
 (def dicts
