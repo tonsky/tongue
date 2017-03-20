@@ -1,4 +1,4 @@
-<img src="https://dl.dropboxusercontent.com/u/561580/imgs/tongue_logo.svg">
+<img src="http://s.tonsky.me/imgs/tongue_logo.svg">
 
 [![tongue](https://img.shields.io/clojars/v/tongue.svg)](http://clojars.org/tongue) [![build status](https://img.shields.io/circleci/project/tonsky/tongue.svg)](https://circleci.com/gh/tonsky/tongue)
 
