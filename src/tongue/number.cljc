@@ -2,7 +2,7 @@
   (:require
     [clojure.string :as str]
     [tongue.macro :as macro]
-    #?(:clj [clojure.spec :as spec])))
+    #?(:clj [clojure.spec.alpha :as spec])))
 
 
 (macro/with-spec
@@ -26,10 +26,10 @@
     (cond
       (and (= "." decimal ) (= "" group))
       str
-      
+
       (= "" group)
       #(str/replace (str %) "." decimal )
-      
+
       :else
       (fn [x]
         (let [[_ sign integer-part fraction-part] (re-matches #"(-?)(\d+)\.?(\d*)" (str x))

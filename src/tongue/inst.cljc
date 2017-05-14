@@ -2,7 +2,7 @@
   (:require
     [clojure.string :as str]
     [tongue.macro :as macro]
-    #?(:clj [clojure.spec :as spec]))
+    #?(:clj [clojure.spec.alpha :as spec]))
   #?(:clj
       (:import
         [java.util Calendar])))
@@ -48,8 +48,8 @@
 (defn day-of-week [c] ;; Sunday => 0, ...
   #?(:clj  (dec (.get ^Calendar c Calendar/DAY_OF_WEEK))
      :cljs (.getDay c)))
-  
-  
+
+
 (defn day-of-month [c]
   #?(:clj  (.get ^Calendar c Calendar/DAY_OF_MONTH)
      :cljs (.getDate c)))
@@ -134,12 +134,12 @@
   (macro/with-spec
     (spec/assert ::template template)
     (spec/assert ::strings strings))
-  
+
   (let [tokens (->> (re-seq #"(?:\{([^{} ]+)\}|\{|[^{]*)" template)
                     (map (fn [[string code]] (if code (keyword code) string))))]
     #?(:clj
         (fn format
-          ([t] 
+          ([t]
             (macro/with-spec
               (spec/assert inst? t))
             (format t UTC))
