@@ -4,7 +4,7 @@
     [tongue.inst :as inst]
     [tongue.number :as number]
     [tongue.macro :as macro]
-    #?(:clj [clojure.spec :as spec])))
+    #?(:clj [clojure.spec.alpha :as spec])))
 
 
 (def inst-formatter inst/formatter)
@@ -110,7 +110,7 @@
 
 
 (defn- build-dicts [dicts]
-  (reduce-kv 
+  (reduce-kv
     (fn [acc lang dict]
       (assoc acc lang (if (map? dict) (build-dict dict) dict)))
     {} dicts))

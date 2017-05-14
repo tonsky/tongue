@@ -4,19 +4,19 @@
   :license      {:name "Eclipse Public License"
                  :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [
-    [org.clojure/clojure "1.9.0-alpha10" :scope "provided"]
-    [org.clojure/clojurescript "1.9.89" :scope "provided"]
+    [org.clojure/clojure "1.9.0-alpha16" :scope "provided"]
+    [org.clojure/clojurescript "1.9.542" :scope "provided"]
   ]
-  
+
   :global-vars { *warn-on-reflection* true }
-  
-  :plugins [[lein-cljsbuild "1.1.3"]]
-  
+
+  :plugins [[lein-cljsbuild "1.1.6"]]
+
   :profiles {
     :dev {
       :jvm-opts ["-Dclojure.spec.check-asserts=true"]
   }}
-  
+
   :cljsbuild
   { :builds
     [{ :id "test"
@@ -26,4 +26,3 @@
          :output-to      "target/test.js"
          :optimizations  :advanced
          :parallel-build true }}]})
-  
