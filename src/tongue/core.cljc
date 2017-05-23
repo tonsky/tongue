@@ -54,6 +54,11 @@
       (str "{Missing key " key "}")))
 
 
+(defn- regexp-escape [str]
+  #?(:clj (java.util.regex.Matcher/quoteReplacement str)
+     :cljs (.replace str (js/RegExp. "[-\\/\\\\^$*+?.()|[\\]{}]" "g") "\\$&")))
+
+
 (defn- format-argument [dicts locale x]
   (cond
     (number? x) (let [formatter (or (lookup-template-for-locale dicts locale :tongue/format-number)
@@ -62,7 +67,7 @@
     (inst? x)   (let [formatter (or (lookup-template-for-locale dicts locale :tongue/format-inst)
                                     format-inst-iso)]
                   (formatter x))
-    :else       (str x)))
+    :else       (regexp-escape (str x))))
 
 
 (macro/with-spec
