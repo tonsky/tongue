@@ -55,7 +55,7 @@
 
 (defn- regexp-escape [str]
   #?(:clj (java.util.regex.Matcher/quoteReplacement str)
-     :cljs (.replace str (js/RegExp. "[-\\/\\\\^$*+?.()|[\\]{}]" "g") "\\$&")))
+     :cljs str))
 
 
 (defn- format-argument [dicts locale x]
