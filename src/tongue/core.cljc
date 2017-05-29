@@ -54,9 +54,9 @@
       (str "{Missing key " key "}")))
 
 
-(defn- regexp-escape [str]
+(defn- escape-re-subst [str]
   #?(:clj (java.util.regex.Matcher/quoteReplacement str)
-     :cljs (.replace str (js/RegExp. "[-\\/\\\\^$*+?.()|[\\]{}]" "g") "\\$&")))
+     :cljs (str/replace str #"\$" "$$$$")))
 
 
 (defn- format-argument [dicts locale x]
@@ -67,7 +67,7 @@
     (inst? x)   (let [formatter (or (lookup-template-for-locale dicts locale :tongue/format-inst)
                                     format-inst-iso)]
                   (formatter x))
-    :else       (regexp-escape (str x))))
+    :else       (str x)))
 
 
 (macro/with-spec
@@ -88,7 +88,7 @@
       (spec/assert ::key key))
     (let [t (lookup-template dicts locale key)
           s (if (ifn? t) (t x) t)]
-      (str/replace s #"\{1\}" (format-argument dicts locale x))))
+      (str/replace s #"\{1\}" (escape-re-subst (format-argument dicts locale x)))))
   ([dicts locale key x & rest]
     (macro/with-spec
       (spec/assert ::locale locale)
@@ -97,9 +97,9 @@
           t    (lookup-template dicts locale key)
           s    (if (ifn? t) (apply t x rest) t)]
       (str/replace s #"\{(\d+)\}" (fn [[_ n]]
-                                  (let [idx (dec (parse-long n))
-                                        arg (nth args idx)]
-                                    (format-argument dicts locale arg)))))))
+                                    (let [idx (dec (parse-long n))
+                                          arg (nth args idx)]
+                                      (format-argument dicts locale arg)))))))
 
 
 (defn- build-dict

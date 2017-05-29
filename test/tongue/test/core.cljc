@@ -69,8 +69,12 @@
                                     :ru { :key "{1} значение" } })]
     (is (= "1000.1 value" (t :en :key 1000.1))) 
     (is (= "1000.1 значение" (t :ru :key 1000.1)))
-    (is (= "{Missing key :key}" (t :de :key 1000.1))))
+    (is (= "{Missing key :key}" (t :de :key 1000.1)))))
 
-  (testing "Should escape regexp characters in interpolated strings"
-    (let [t (tongue/build-translate { :en { :key "Here's my {1}" } })]
-      (is (= "Here's my $2.02" (t :en :key "$2.02"))))))
+
+(deftest test-regex-escape
+  (let [t (tongue/build-translate { :en { :key "Here's my {1}" } })]
+    (is (= "Here's my $1.02 $&" (t :en :key "$1.02 $&"))))
+  
+  (let [t (tongue/build-translate { :en { :key "Here's my {1} {2} {3}" } })]
+    (is (= "Here's my $1.3 $2.x $&" (t :en :key "$1.3" "$2.x" "$&")))))
