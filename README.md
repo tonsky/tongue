@@ -26,7 +26,7 @@ As a result you have a library that handles exactly your case well with as much 
 Add to `project.clj`:
 
 ```clj
-[tongue "0.2.1"]
+[tongue "0.2.2"]
 ```
 
 In production:
@@ -257,6 +257,10 @@ Full list of formatting options:
 
 
 ## Changes
+
+### 0.2.2
+
+- Fixed incorrect substitution if replacement contained `$` (PR #7, thx [Christian Johansen](https://github.com/cjohansen))
 
 ### 0.2.1
 
