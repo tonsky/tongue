@@ -2,7 +2,7 @@
   (:require
     [clojure.string :as str]
     [tongue.macro :as macro]
-    #?(:clj [clojure.spec :as spec])))
+    #?(:clj [clojure.spec.alpha :as spec])))
 
 
 (macro/with-spec

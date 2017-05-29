@@ -23,18 +23,10 @@ As a result you have a library that handles exactly your case well with as much 
 
 ## Setup
 
-If you're using Clojure 1.8, add to `project.clj`:
+Add to `project.clj`:
 
 ```clj
-[org.clojure/clojure "1.8"]
-[tongue "0.1.4"]
-```
-
-If you want to try out 1.9 alpha, use `0.2.0` version of Tongue:
-
-```clj
-[org.clojure/clojure "1.9.0-alpha10"]
-[tongue "0.2.0"]
+[tongue "0.2.1"]
 ```
 
 In production:
@@ -265,6 +257,11 @@ Full list of formatting options:
 
 
 ## Changes
+
+### 0.2.1
+
+- `[clojure-future-spec "1.9.0-alpha17"]`
+- Tongue now works in both 1.8 and 1.9+ Clojure environments
 
 ### 0.2.0
 
