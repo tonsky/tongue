@@ -61,9 +61,13 @@ Define dictionaries:
           ;; substitutions
           :welcome "Hello, {1}!"
           :between "Value must be between {1} and {2}"
+
           ;; For using a map
           :mail-title "{user}, {title} - Message received."
 
+          ;; aliases, to share common strings but still use specific i18n keys
+          :frontpage-greeting :welcome
+          
           ;; arbitrary functions
           :count (fn [x]
                    (cond
