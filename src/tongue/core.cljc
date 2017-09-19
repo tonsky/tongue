@@ -115,10 +115,32 @@
     {} dict))
 
 
+(defn- resolve-alias-1
+  [m k]
+  (loop [v k
+         path #{}]
+    (when (path v)
+      (throw (ex-info "Unable to resolve mutually recursive alias" {:keys path})))
+    (let [val (or (m v) v)]
+      (if (= val v)
+        val
+        (recur val (conj path v))))))
+
+
+(defn- resolve-aliases
+  "Shallowly walks a map, and finds every value that is also a key in the same
+  map, and replaces the value with the referenced value. Recursively walks the
+  map to resolve layered aliases.
+
+  (resolve-aliases {:a 1 :b 2 :c :a}) ;;=> {:a 1 :b 2 :c 1}"
+  [m]
+  (into {} (map #(vector (first %) (resolve-alias-1 m (second %))) m)))
+
+
 (defn- build-dicts [dicts]
   (reduce-kv 
     (fn [acc lang dict]
-      (assoc acc lang (if (map? dict) (build-dict dict) dict)))
+      (assoc acc lang (if (map? dict) (-> dict build-dict resolve-aliases) dict)))
     {} dicts))
 
 

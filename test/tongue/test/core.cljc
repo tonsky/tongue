@@ -2,12 +2,16 @@
   (:require
     [tongue.core :as tongue]
     #?(:clj  [clojure.test :refer [deftest is are testing]]
-       :cljs [cljs.test :as test :refer-macros [deftest is are testing]])))
+       :cljs [cljs.test :as test :refer-macros [deftest is are testing]]))
+  (:import #?(:clj [clojure.lang ExceptionInfo])))
 
 
 (deftest test-translate
   (let [dicts { :en-GB { :color  "colour"
-                         :ns     { :a "a" }}
+                         :ns     { :a "a" }
+                         :alias1 :ns/a
+                         :alias2 :color
+                         :alias3 { :a :alias1 }}
                 
                 :en    { :color  "color"
                          :common "common"
@@ -30,7 +34,7 @@
                 
                 :tongue/fallback :en-US }
         translate (tongue/build-translate dicts)]
-    
+
     (are [l k a t] (= (apply translate l k a) t)
       :en-GB :color  [] "colour"
       :en    :color  [] "color"   
@@ -61,7 +65,12 @@
       :en    :plural [2]       "2 items"
       :ru    :plural [0]       "ничего"
       :ru    :plural [1]       "1 штука"
-      :ru    :plural [5]       "5 штук"))
+      :ru    :plural [5]       "5 штук"
+
+      ;; aliases
+      :en-GB :alias1   [] "a"
+      :en-GB :alias2   [] "colour"
+      :en-GB :alias3/a [] "a"))
   
   
   ;; should work without :tongue/fallback
@@ -70,6 +79,17 @@
     (is (= "1000.1 value" (t :en :key 1000.1))) 
     (is (= "1000.1 значение" (t :ru :key 1000.1)))
     (is (= "{Missing key :key}" (t :de :key 1000.1)))))
+
+
+(deftest test-invalid-alias
+  (testing "Should throw if defining mutually recursive aliases"
+    (try
+      (tongue/build-translate { :en { :a :b :b :a } })
+      (throw (ex-info "Recursive aliases should throw" {}))
+      #?(:clj (catch ExceptionInfo e
+                (is (= (-> e :data :keys)) #{:a :b}))
+         :cljs (catch :default e
+                 (is (= (-> e :data :keys)) #{:a :b}))))))
 
 
 (deftest test-regex-escape
