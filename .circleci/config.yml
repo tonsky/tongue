@@ -54,8 +54,6 @@ jobs:
        - checkout
        - attach_workspace:
            at: .
-       - run: ls -lah .
-       - run: ls -lah target/
        - run: node test/tongue/test.js
 
    deploy:
@@ -72,12 +70,24 @@ workflows:
   version: 2
   everything:
     jobs:
-      - test_clj
-      - test_clj_18
-      - build_cljs
+      - test_clj:
+          filters:
+            tags:
+              only: /.*/
+      - test_clj_18:
+          filters:
+            tags:
+              only: /.*/
+      - build_cljs:
+          filters:
+            tags:
+              only: /.*/
       - test_cljs:
           requires:
             - build_cljs
+          filters:
+            tags:
+              only: /.*/
       - deploy:
           requires:
             - test_clj
