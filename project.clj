@@ -25,12 +25,20 @@
   }
 
   :aliases {
-    "test-all" ["do"
-                 ["clean"]
-                 ["run" "-m" "tongue.test/test-clojure"]
-                 ["with-profile" "dev,1.8" "run" "-m" "tongue.test/test-clojure"]
-                 ["cljsbuild" "once" "test"]
-                 ["run" "-m" "tongue.test/test-node"]]
+    "build-all" ["cljsbuild" "once" "test"]
+    "test-clj"  ["do"
+                  ["run" "-m" "tongue.test/test-clojure"]
+                  ["with-profile" "dev,1.8" "run" "-m" "tongue.test/test-clojure"]]
+    "test-cljs" ["run" "-m" "tongue.test/test-node"]
+    "test-all"  ["do"
+                  ["clean"]
+                  ["build-all"]
+                  ["test-clj"]
+                  ["test-cljs"]]
+  }
+
+  :repository-auth {
+    #"clojars" { :username "tonsky" :password :env/clojars_password }
   }
   
   :cljsbuild

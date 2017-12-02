@@ -1,0 +1,90 @@
+version: 2
+jobs:
+   test_clj:
+     working_directory: ~/tongue
+     docker:
+       - image: circleci/clojure:lein
+     steps:
+       - checkout
+       - restore_cache:
+           key: dependency-cache-{{ checksum "project.clj" }}
+       - run: lein run -m tongue.test/test-clojure
+       - save_cache:
+           key: dependency-cache-{{ checksum "project.clj" }}
+           paths:
+             - ~/.m2
+
+   test_clj_18:
+     working_directory: ~/tongue
+     docker:
+       - image: circleci/clojure:lein
+     steps:
+       - checkout
+       - restore_cache:
+           key: dependency-cache-{{ checksum "project.clj" }}
+       - run: lein with-profile dev,1.8 run -m tongue.test/test-clojure 
+       - save_cache:
+           key: dependency-cache-{{ checksum "project.clj" }}
+           paths:
+             - ~/.m2
+
+   build_cljs:
+     working_directory: ~/tongue
+     docker:
+       - image: circleci/clojure:lein
+     steps:
+       - checkout
+       - restore_cache:
+           key: dependency-cache-{{ checksum "project.clj" }}
+       - run: lein cljsbuild once test
+       - save_cache:
+           key: dependency-cache-{{ checksum "project.clj" }}
+           paths:
+             - ~/.m2
+       - persist_to_workspace:
+           root: .
+           paths:
+             - target/test.js
+
+   test_cljs:
+     working_directory: ~/tongue
+     docker:
+       - image: circleci/node:8
+     steps:
+       - checkout
+       - attach_workspace:
+           at: .
+       - run: ls -lah .
+       - run: ls -lah target/
+       - run: node test/tongue/test.js
+
+   deploy:
+     working_directory: ~/tongue
+     docker:
+       - image: circleci/clojure:lein
+     steps:
+       - checkout
+       - restore_cache:
+           key: dependency-cache-{{ checksum "project.clj" }}
+       - run: lein deploy clojars
+
+workflows:
+  version: 2
+  everything:
+    jobs:
+      - test_clj
+      - test_clj_18
+      - build_cljs
+      - test_cljs:
+          requires:
+            - build_cljs
+      - deploy:
+          requires:
+            - test_clj
+            - test_clj_18
+            - test_cljs
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /[0-9.]+/
