@@ -97,8 +97,8 @@
           t    (lookup-template dicts locale key)
           s    (if (ifn? t) (apply t x rest) t)]
       (str/replace s #"\{(\d+)\}" (fn [[_ n]]
-                                    (let [idx (dec (parse-long n))
-                                          arg (nth args idx)]
+                                    (let [idx (parse-long n)
+                                          arg (nth args (dec idx) (str "{Missing index " idx "}"))]
                                       (format-argument dicts locale arg)))))))
 
 

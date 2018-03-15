@@ -14,6 +14,7 @@
                          :ns     { :a "A" :b "B" }
                          :subst1 "one {1} argument"
                          :subst2 "two {1} {2} {1} arguments"
+                         :subst3 "missing {1} {2} {3} argument"
                          :args   (fn [& args] (pr-str args))
                          :plural (fn [x]
                                    (cond
@@ -52,6 +53,7 @@
       ;; arguments
       :en    :subst1  ["A"]     "one A argument"
       :en    :subst2  ["A" "B"] "two A B A arguments"
+      :en    :subst3  ["A" "B"] "missing A B {Missing index 3} argument"
          
       ;; fns
       :en    :args   ["A"]     "(\"A\")"
