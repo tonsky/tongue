@@ -1,6 +1,6 @@
 <img src="http://s.tonsky.me/imgs/tongue_logo.svg">
 
-[![tongue](https://img.shields.io/clojars/v/tongue.svg)](http://clojars.org/tongue) [![build status](https://img.shields.io/circleci/project/tonsky/tongue.svg)](https://circleci.com/gh/tonsky/tongue)
+[![tongue](https://img.shields.io/clojars/v/tongue.svg)](http://clojars.org/tongue) [![build status](https://img.shields.io/circleci/project/tonsky/tongue.svg)](https://circleci.com/gh/tonsky/tongue) [![docs on cljdoc](https://cljdoc.xyz/badge/tongue)](https://cljdoc.xyz/d/tongue/tongue/CURRENT)
 
 Tongue is a do-it-yourself i18n library for Clojure and ClojureScript.
 
