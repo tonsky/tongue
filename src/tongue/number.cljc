@@ -14,9 +14,11 @@
 (defn formatter
   "Helper to build number format functions
    Accepts options map:
-     { :decimal \".\"  ;; integer/fractional mark
-       :group   \"\" } ;; thousands grouping mark
-   Returns function (number => String)"
+
+       { :decimal \".\"  ;; integer/fractional mark
+         :group   \"\" } ;; thousands grouping mark
+
+   Returns function `(number => String)`"
   [opts]
   (macro/with-spec
     (spec/assert ::options opts))
