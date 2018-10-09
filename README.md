@@ -281,7 +281,7 @@ Full list of formatting options:
 
 ### 0.1.4
 
-- Use unified `{}` syntax instead of `<...>`/`%x"
+- Use unified `{}` syntax instead of `<...>`/`%x`
 
 ### 0.1.3
 
