@@ -143,7 +143,8 @@
 
 (defn build-translate
   "Given dicts, builds translate function closed over these dicts:
-   (build-translate dicts) => ( [locale key & args] => string )"
+
+       (build-translate dicts) => ( [locale key & args] => string )"
   [dicts]
   (macro/with-spec
     (spec/assert ::dicts dicts))
