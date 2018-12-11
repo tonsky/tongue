@@ -5,6 +5,10 @@
        :cljs [cljs.test :as test :refer-macros [deftest is are testing]])))
 
 
+#?(:cljs
+   (def Throwable js/Error))
+
+
 (deftest test-translate
   (let [dicts { :en-GB { :color  "colour"
                          :ns     { :a "a" }}
@@ -13,8 +17,8 @@
                          :common "common"
                          :ns     { :a "A"
                                    :b "B"
-                                   :c { "hoge" { :foo "FOO" }
-                                        "fuga" { :bar "BAR" }}}
+                                   :c { :hoge { :foo "FOO" }
+                                        :fuga { :bar "BAR" }}}
                          :subst1 "one {1} argument"
                          :subst2 "two {1} {2} {1} arguments"
                          :subst3 "missing {1} {2} {3} argument"
@@ -86,3 +90,10 @@
   
   (let [t (tongue/build-translate { :en { :key "Here's my {1} {2} {3}" } })]
     (is (= "Here's my $1.3 $2.x $&" (t :en :key "$1.3" "$2.x" "$&")))))
+
+
+(deftest test-errors
+  (is (thrown-with-msg? Throwable #"Assert failed: :tongue/\.\.\. keys can only be specified at top level"
+        (tongue/build-translate {:en {:ns {:tongue/format-number nil}}}))))
+
+#_(clojure.test/test-vars [#'test-errors])

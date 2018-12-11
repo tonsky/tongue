@@ -258,6 +258,10 @@ Full list of formatting options:
 
 ## Changes
 
+### WIP
+
+- Enable deep nesting of dicts (PR #18, thx @valerauko)
+
 ### 0.2.4
 
 - Don’t throw on missing argument index (#13)

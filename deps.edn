@@ -1,0 +1,9 @@
+{ :deps {
+    clojure-future-spec {:mvn/version "1.9.0-beta4"}
+  }
+  :aliases {
+    :test {
+      :extra-paths ["test"]
+    }
+  }
+}

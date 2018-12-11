@@ -102,29 +102,30 @@
                                       (format-argument dicts locale arg)))))))
 
 
-(defn- join-kws
-  [ns-key key]
-  (keyword (if (and (keyword? ns-key) (namespace ns-key))
-             (str (namespace ns-key) "." (name ns-key))
-             (let [key-name (name ns-key)]
-               (if-not (empty? key-name) key-name)))
-           (name key)))
+(defn- append-ns [ns segment]
+  (str (when ns (str ns "."))
+       segment))
 
 
 (defn- build-dict
   "Collapses nested maps into namespaced keywords:
    { :ns { :key 1 }} => { :ns/key 1 }
    { :animal { :flying { :bird 420 }}} => { :animal.flying/bird 420 }"
-  ([dict] (build-dict dict ""))
-  ([dict prefix]
+  ([dict] (build-dict nil dict))
+  ([ns dict]
     (reduce-kv
       (fn [aggr key value]
-        (let [new-key (if (and (keyword? key) (= (namespace key) "tongue"))
-                        key
-                        (join-kws prefix key))]
-          (if (map? value)
-            (merge aggr (build-dict value new-key))
-            (assoc aggr new-key value))))
+        (cond
+          (= "tongue" (namespace key))
+          (do
+            (assert (nil? ns) ":tongue/... keys can only be specified at top level")
+            (assoc aggr key value))
+
+          (map? value)
+          (merge aggr (build-dict (append-ns ns (name key)) value))
+
+          :else
+          (assoc aggr (keyword ns (name key)) value)))
       {} dict)))
 
 
