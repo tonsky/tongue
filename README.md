@@ -26,7 +26,7 @@ As a result you have a library that handles exactly your case well with as much 
 Add to `project.clj`:
 
 ```clj
-[tongue "0.2.4"]
+[tongue "0.2.5"]
 ```
 
 In production:
@@ -258,7 +258,7 @@ Full list of formatting options:
 
 ## Changes
 
-### WIP
+### 0.2.5
 
 - Enable deep nesting of dicts (PR #18, thx @valerauko)
 - Bumped `clojure-future-spec` to 1.9.0
