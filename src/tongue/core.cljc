@@ -119,8 +119,9 @@
   ([dict prefix]
     (reduce-kv
       (fn [aggr key value]
-        (let [new-key (join-kws prefix key)]
-          (println new-key)
+        (let [new-key (if (= (namespace key) "tongue")
+                        key
+                        (join-kws prefix key))]
           (if (map? value)
             (merge aggr (build-dict value new-key))
             (assoc aggr new-key value))))
