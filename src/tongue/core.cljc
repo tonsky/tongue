@@ -115,14 +115,14 @@
   "Collapses nested maps into namespaced keywords:
    { :ns { :key 1 }} => { :ns/key 1 }
    { :animal { :flying { :bird 420 }}} => { :animal.flying/bird 420 }"
-  ([dict] (reduce-dict dict ""))
+  ([dict] (build-dict dict ""))
   ([dict prefix]
     (reduce-kv
       (fn [aggr key value]
         (let [new-key (join-kws prefix key)]
           (println new-key)
           (if (map? value)
-            (merge aggr (reduce-dict value new-key))
+            (merge aggr (build-dict value new-key))
             (assoc aggr new-key value))))
       {} dict)))
 
