@@ -11,7 +11,10 @@
                 
                 :en    { :color  "color"
                          :common "common"
-                         :ns     { :a "A" :b "B" }
+                         :ns     { :a "A"
+                                   :b "B"
+                                   :c { :hoge { :foo "FOO" }
+                                        :fuga { :bar "BAR" }}}
                          :subst1 "one {1} argument"
                          :subst2 "two {1} {2} {1} arguments"
                          :subst3 "missing {1} {2} {3} argument"
@@ -49,6 +52,9 @@
       :en-GB :ns/b   [] "B"
       :en    :ns/a   [] "A"
       :en    :ns/b   [] "B"
+      ;; deeply nested
+      :en    :ns.c.hoge/foo [] "FOO"
+      :en    :ns.c.fuga/bar [] "BAR"
          
       ;; arguments
       :en    :subst1  ["A"]     "one A argument"
