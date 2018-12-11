@@ -102,7 +102,7 @@
                                       (format-argument dicts locale arg)))))))
 
 
-(defn join-kws
+(defn- join-kws
   [ns-key key]
   (keyword (if (and (keyword? ns-key) (namespace ns-key))
              (str (namespace ns-key) "." (name ns-key))
