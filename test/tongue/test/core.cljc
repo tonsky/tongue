@@ -13,8 +13,8 @@
                          :common "common"
                          :ns     { :a "A"
                                    :b "B"
-                                   :c { :hoge { :foo "FOO" }
-                                        :fuga { :bar "BAR" }}}
+                                   :c { "hoge" { :foo "FOO" }
+                                        "fuga" { :bar "BAR" }}}
                          :subst1 "one {1} argument"
                          :subst2 "two {1} {2} {1} arguments"
                          :subst3 "missing {1} {2} {3} argument"

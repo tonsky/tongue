@@ -119,7 +119,7 @@
   ([dict prefix]
     (reduce-kv
       (fn [aggr key value]
-        (let [new-key (if (= (namespace key) "tongue")
+        (let [new-key (if (and (keyword? key) (= (namespace key) "tongue"))
                         key
                         (join-kws prefix key))]
           (if (map? value)
