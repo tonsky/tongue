@@ -1,5 +1,5 @@
 { :deps {
-    clojure-future-spec {:mvn/version "1.9.0-beta4"}
+    clojure-future-spec {:mvn/version "1.9.0"}
   }
   :aliases {
     :test {

@@ -6,7 +6,7 @@
   :dependencies [
     [org.clojure/clojure "1.9.0" :scope "provided"]
     [org.clojure/clojurescript "1.9.946" :scope "provided"]
-    [clojure-future-spec "1.9.0-beta4"]
+    [clojure-future-spec "1.9.0"]
   ]
   
   :global-vars { *warn-on-reflection* true }

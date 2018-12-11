@@ -261,6 +261,7 @@ Full list of formatting options:
 ### WIP
 
 - Enable deep nesting of dicts (PR #18, thx @valerauko)
+- Bumped `clojure-future-spec` to 1.9.0
 
 ### 0.2.4
 
