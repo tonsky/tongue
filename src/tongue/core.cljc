@@ -125,7 +125,7 @@
           (merge aggr (build-dict (append-ns ns (name key)) value))
 
           :else
-          (assoc aggr (keyword ns (name key)) value)))
+          (assoc aggr (keyword (or ns (namespace key)) (name key)) value)))
       {} dict)))
 
 

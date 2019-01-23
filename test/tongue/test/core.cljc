@@ -12,30 +12,31 @@
 (deftest test-translate
   (let [dicts { :en-GB { :color  "colour"
                          :ns     { :a "a" }}
-                
-                :en    { :color  "color"
-                         :common "common"
-                         :ns     { :a "A"
-                                   :b "B"
-                                   :c { :hoge { :foo "FOO" }
-                                        :fuga { :bar "BAR" }}}
-                         :subst1 "one {1} argument"
-                         :subst2 "two {1} {2} {1} arguments"
-                         :subst3 "missing {1} {2} {3} argument"
-                         :args   (fn [& args] (pr-str args))
-                         :plural (fn [x]
-                                   (cond
-                                     (zero? x) "no items"
-                                     (= 1 x)   "{1} item"
-                                     :else     "{1} items")) }
-                
+
+                :en    { :color     "color"
+                         :common    "common"
+                         :ns        { :a "A"
+                                      :b "B"
+                                      :c { :hoge { :foo "FOO" }
+                                           :fuga { :bar "BAR" }}}
+                         :ns/in-key "namespace in key"
+                         :subst1    "one {1} argument"
+                         :subst2    "two {1} {2} {1} arguments"
+                         :subst3    "missing {1} {2} {3} argument"
+                         :args      (fn [& args] (pr-str args))
+                         :plural    (fn [x]
+                                      (cond
+                                        (zero? x) "no items"
+                                        (= 1 x)   "{1} item"
+                                        :else     "{1} items")) }
+
                 :ru    { :color  "цвет"
                          :plural (fn [x]
                                    (cond
                                      (zero? x) "ничего"
                                      (= 1 x)   "{1} штука"
                                      :else     "{1} штук")) }
-                
+
                 :tongue/fallback :en-US }
         translate (tongue/build-translate dicts)]
     
@@ -59,6 +60,8 @@
       ;; deeply nested
       :en    :ns.c.hoge/foo [] "FOO"
       :en    :ns.c.fuga/bar [] "BAR"
+      ;; in the key
+      :en    :ns/in-key [] "namespace in key"
          
       ;; arguments
       :en    :subst1  ["A"]     "one A argument"
