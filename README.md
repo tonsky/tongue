@@ -35,7 +35,7 @@ In production:
 
 In development:
 
-- Add `-Dclojure.spec.check-asserts=true` to JVM options. 
+- Add `-Dclojure.spec.check-asserts=true` to JVM options.
 
 ## Usage
 
@@ -48,20 +48,21 @@ Define dictionaries:
   { :en { ;; simple keys
           :color "Color"
           :flower "Flower"
-          
+
           ;; namespaced keys
           :weather/rain   "Rain"
           :weather/clouds "Clouds"
-          
+
           ;; nested maps will be unpacked into namespaced keys
           ;; this is purely for ease of dictionary writing
           :animals { :dog "Dog"   ;; => :animals/dog
                      :cat "Cat" } ;; => :animals/cat
-                     
+
           ;; substitutions
           :welcome "Hello, {1}!"
           :between "Value must be between {1} and {2}"
-          
+          :mail-title "%{user}, %{title} - Message received."
+
           ;; arbitrary functions
           :count (fn [x]
                    (cond
@@ -69,7 +70,7 @@ Define dictionaries:
                      (= 1 x)   "1 item"
                      :else     "{1} items")) ;; you can return string with substitutions
         }
-                   
+
     :en-GB { :color "colour" } ;; sublang overrides
     :tongue/fallback :en }     ;; fallback locale key
 ```
@@ -92,13 +93,14 @@ And go use it:
 ;; substitutions
 (translate :en :welcome "Nikita") ;; => "Hello, Nikita!"
 (translate :en :between 0 100) ;; => "Value must be between 0 and 100"
+(translate :en :mail-title {"user" "Tom" "title" "New message"}) ;; => "Tom, New message - Message received."
 
 ;; if key resolves to fn, it will be called with provided arguments
 (translate :en :count 0) ;; => "No items"
 (translate :en :count 1) ;; => "1 item"
 (translate :en :count 2) ;; => "2 items"
 
-;; multi-tag locales will fall back to more generic versions 
+;; multi-tag locales will fall back to more generic versions
 ;; :zh-Hans-CN will look in :zh-Hans-CN first, then :zh-Hans, then :zh, then fallback locale
 (translate :en-GB :color) ;; => "Colour", taken from :en-GB
 (translate :en-GB :flower) ;; => "Flower", taken from :en
@@ -118,7 +120,7 @@ Tongue can help you build localized number formatters:
 (def format-number-en ;; [number] => string
   (tongue/number-formatter { :group ","
                              :decimal "." }))
-                             
+
 (format-number-en 9999.9) ;; => "9,999.9"
 ```
 
@@ -207,7 +209,7 @@ Use multiple keys if you need several datetime format options:
 
 ```clj
 (def dicts
-  { :en 
+  { :en
     { :date-full     (tongue/inst-formatter "{month-long} {day}, {year}" inst-strings-en)
       :date-short    (tongue/inst-formatter "{month-numeric}/{day}/{year-2digit}" inst-strings-en)
       :time-military (tongue/inst-formatter "{hour24-padded}{minutes-padded}")}})
@@ -226,7 +228,7 @@ Use multiple keys if you need several datetime format options:
 
 Full list of formatting options:
 
-| Code                 | Example        | Meaning              | 
+| Code                 | Example        | Meaning              |
 | -------------------- | -------------- | -------------------- |
 | `{hour24-padded}`    | 00, 09, 12, 23 | Hour of day (00-23), 0-padded |
 | `{hour24}`           | 0, 9, 12, 23   | Hour of day (0-23) |
