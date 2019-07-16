@@ -91,7 +91,7 @@
       (if (map? x)
         (str/replace s #"%?\{(\w+)\}"
                      (fn [[_ k]]
-                       (format-argument dicts locale (get x k))))
+                       (format-argument dicts locale (get x (keyword k)))))
         (str/replace s #"%?\{1\}"
                      (escape-re-subst (format-argument dicts locale x))))))
   ([dicts locale key x & rest]

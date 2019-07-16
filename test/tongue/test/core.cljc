@@ -21,9 +21,10 @@
                                            :fuga { :bar "BAR" }}}
                          :ns/in-key "namespace in key"
                          :subst1    "one {1} argument"
-                         :subst2    "two {1} {2} %{1} arguments"
+                         :subst2    "two {1} {2} {1} arguments"
                          :subst3    "missing {1} {2} {3} argument"
-                         :subst4    "%{arg1} {arg2} map arguments"
+                         :subst4    "{arg1} {arg2} map arguments"
+                         :subst5    "%{arg1} %{arg2} map arguments in case of same dictionary format with other programming languages"
                          :args      (fn [& args] (pr-str args))
                          :plural    (fn [x]
                                       (cond
@@ -68,7 +69,8 @@
       :en    :subst1  ["A"]     "one A argument"
       :en    :subst2  ["A" "B"] "two A B A arguments"
       :en    :subst3  ["A" "B"] "missing A B {Missing index 3} argument"
-      :en    :subst4  [{"arg1" "A" "arg2" "B"}] "A B map arguments"
+      :en    :subst4  [{:arg1 "A" :arg2 "B"}] "A B map arguments"
+      :en    :subst5  [{:arg1 "A" :arg2 "B"}] "A B map arguments in case of same dictionary format with other programming languages"
 
       ;; fns
       :en    :args   ["A"]     "(\"A\")"

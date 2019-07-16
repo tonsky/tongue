@@ -61,6 +61,7 @@ Define dictionaries:
           ;; substitutions
           :welcome "Hello, {1}!"
           :between "Value must be between {1} and {2}"
+          ;; For using same dictionary formats with other programming languages
           :mail-title "%{user}, %{title} - Message received."
 
           ;; arbitrary functions
