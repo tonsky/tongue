@@ -89,10 +89,10 @@
     (let [t (lookup-template dicts locale key)
           s (if (ifn? t) (t x) t)]
       (if (map? x)
-        (str/replace s #"%?\{(\w+)\}"
+        (str/replace s #"\{(\w+)\}"
                      (fn [[_ k]]
                        (format-argument dicts locale (get x (keyword k)))))
-        (str/replace s #"%?\{1\}"
+        (str/replace s #"\{1\}"
                      (escape-re-subst (format-argument dicts locale x))))))
   ([dicts locale key x & rest]
     (macro/with-spec
@@ -101,7 +101,7 @@
     (let [args (cons x rest)
           t    (lookup-template dicts locale key)
           s    (if (ifn? t) (apply t x rest) t)]
-      (str/replace s #"%?\{(\d+)\}"
+      (str/replace s #"\{(\d+)\}"
                    (fn [[_ n]]
                      (let [idx (parse-long n)
                            arg (nth args (dec idx)
