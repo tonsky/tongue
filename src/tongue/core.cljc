@@ -88,7 +88,12 @@
       (spec/assert ::key key))
     (let [t (lookup-template dicts locale key)
           s (if (ifn? t) (t x) t)]
-      (str/replace s #"\{1\}" (escape-re-subst (format-argument dicts locale x)))))
+      (if (map? x)
+        (str/replace s #"\{(\w+)\}"
+                     (fn [[_ k]]
+                       (format-argument dicts locale (get x (keyword k)))))
+        (str/replace s #"\{1\}"
+                     (escape-re-subst (format-argument dicts locale x))))))
   ([dicts locale key x & rest]
     (macro/with-spec
       (spec/assert ::locale locale)
@@ -96,10 +101,12 @@
     (let [args (cons x rest)
           t    (lookup-template dicts locale key)
           s    (if (ifn? t) (apply t x rest) t)]
-      (str/replace s #"\{(\d+)\}" (fn [[_ n]]
-                                    (let [idx (parse-long n)
-                                          arg (nth args (dec idx) (str "{Missing index " idx "}"))]
-                                      (format-argument dicts locale arg)))))))
+      (str/replace s #"\{(\d+)\}"
+                   (fn [[_ n]]
+                     (let [idx (parse-long n)
+                           arg (nth args (dec idx)
+                                    (str "{Missing index " idx "}"))]
+                       (format-argument dicts locale arg)))))))
 
 
 (defn- append-ns [ns segment]
@@ -130,7 +137,7 @@
 
 
 (defn- build-dicts [dicts]
-  (reduce-kv 
+  (reduce-kv
     (fn [acc lang dict]
       (assoc acc lang (if (map? dict) (build-dict dict) dict)))
     {} dicts))
