@@ -89,7 +89,7 @@
     (let [t (lookup-template dicts locale key)
           s (if (ifn? t) (t x) t)]
       (if (map? x)
-        (str/replace s #"\{(\w+)\}"
+        (str/replace s #"\{([\w-]+)\}"
                      (fn [[_ k]]
                        (format-argument dicts locale (get x (keyword k)))))
         (str/replace s #"\{1\}"
