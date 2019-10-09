@@ -26,7 +26,7 @@ As a result you have a library that handles exactly your case well with as much 
 Add to `project.clj`:
 
 ```clj
-[tongue "0.2.7"]
+[tongue "0.2.8"]
 ```
 
 In production:
@@ -260,6 +260,10 @@ Full list of formatting options:
 
 
 ## Changes
+
+### 0.2.8 October 9, 2019
+
+- Allow dash in map keys (PR #23, thx @mchughs)
 
 ### 0.2.7 July 26, 2019
 
