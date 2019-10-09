@@ -24,6 +24,7 @@
                          :subst2    "two {1} {2} {1} arguments"
                          :subst3    "missing {1} {2} {3} argument"
                          :subst4    "{arg1} {arg2} map arguments"
+                         :subst5    "{foo-bar} {baz-qux} kebab-cased map arguments"
                          :args      (fn [& args] (pr-str args))
                          :plural    (fn [x]
                                       (cond
@@ -69,6 +70,7 @@
       :en    :subst2  ["A" "B"] "two A B A arguments"
       :en    :subst3  ["A" "B"] "missing A B {Missing index 3} argument"
       :en    :subst4  [{:arg1 "A" :arg2 "B"}] "A B map arguments"
+      :en    :subst5  [{:foo-bar "A" :baz-qux "B"}] "A B kebab-cased map arguments"
 
       ;; fns
       :en    :args   ["A"]     "(\"A\")"
