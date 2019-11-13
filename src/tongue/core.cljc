@@ -89,7 +89,8 @@
     (let [t (lookup-template dicts locale key)
           s (if (ifn? t) (t x) t)]
       (if (map? x)
-        (str/replace s #"\{(\S+)\}"
+        (str/replace s #?(:clj  #"\{([\w*!_?$%&=<>'\-+.#0-9]+|[\w*!_?$%&=<>'\-+.#0-9]+\/[\w*!_?$%&=<>'\-+.#0-9:]+)\}"
+                          :cljs #"\{([\w*!_?$%&=<>'\-+.#0-9]+|[\w*!_?$%&=<>'\-+.#0-9]+/[\w*!_?$%&=<>'\-+.#0-9:]+)\}")
                      (fn [[_ k]]
                        (format-argument dicts locale (get x (keyword k)))))
         (str/replace s #"\{1\}"
