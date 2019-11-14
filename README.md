@@ -26,7 +26,7 @@ As a result you have a library that handles exactly your case well with as much 
 Add to `project.clj`:
 
 ```clj
-[tongue "0.2.8"]
+[tongue "0.2.9"]
 ```
 
 In production:
@@ -260,6 +260,10 @@ Full list of formatting options:
 
 
 ## Changes
+
+### 0.2.9 November 14, 2019
+
+- Allow qualified keywords in maps (PR #24, thx @just-sultanov)
 
 ### 0.2.8 October 9, 2019
 
