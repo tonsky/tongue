@@ -74,6 +74,17 @@
   (spec/def ::locale simple-keyword?)
   (spec/def ::key keyword?))
 
+(defn keyname [key]
+  (if (keyword? key) (subs (str key) 1) (str key)))
+
+(defn flatten-map [m & [p]]
+  (if-let [get-path (and (coll? m) (not-empty m)
+                         #(cond->> (keyname %) p (str p ".")))]
+    (into {}
+          (if (map? m)
+            (map (fn [[k v]] (flatten-map v (get-path k))) m)
+            (map-indexed (fn [i v] (flatten-map v (get-path i))) m)))
+    (if p {(keyword p) m} m)))
 
 (defn- translate
   ([dicts locale key]
@@ -88,7 +99,7 @@
       (spec/assert ::key key))
     (let [t (lookup-template dicts locale key)
           s (if (ifn? t) (t x) t)]
-      (if (map? x)
+      (if-let [x (and (map? x) (flatten-map x))]
         (str/replace s #?(:clj  #"\{([\w*!_?$%&=<>'\-+.#0-9]+|[\w*!_?$%&=<>'\-+.#0-9]+\/[\w*!_?$%&=<>'\-+.#0-9:]+)\}"
                           :cljs #"\{([\w*!_?$%&=<>'\-+.#0-9]+|[\w*!_?$%&=<>'\-+.#0-9]+/[\w*!_?$%&=<>'\-+.#0-9:]+)\}")
                      (fn [[_ k]]

@@ -26,6 +26,7 @@
                          :subst4    "{arg1} {arg2} map arguments"
                          :subst5    "{foo-bar} {baz-qux} kebab-cased map arguments"
                          :subst6    "{:foo} {foo/} {:foo/bar} {baz/foo-1} {{9foo#$!?%&=<>+_.'bar0/baz.foo-arg1}} namespaced map arguments"
+                         :subst7    "{foo.bar} {foo.baz.0.qux} {foo.baz.1.qux} nested map arguments"
                          :args      (fn [& args] (pr-str args))
                          :plural    (fn [x]
                                       (cond
@@ -73,6 +74,7 @@
       :en    :subst4  [{:arg1 "A" :arg2 "B"}] "A B map arguments"
       :en    :subst5  [{:foo-bar "A" :baz-qux "B"}] "A B kebab-cased map arguments"
       :en    :subst6  [{:foo "A" :foo/bar "B" :baz/foo-1 "C" :9foo#$!?%&=<>+_.'bar0/baz.foo-arg1 "D"}] "{:foo} {foo/} {:foo/bar} C {D} namespaced map arguments"
+      :en    :subst7  [{:foo {:bar "bar" :baz [{:qux "qux1"} {:qux "qux2"}]}}] "bar qux1 qux2 nested map arguments"
 
       ;; fns
       :en    :args   ["A"]     "(\"A\")"
@@ -106,3 +108,18 @@
         (tongue/build-translate {:en {:ns {:tongue/format-number nil}}}))))
 
 #_(clojure.test/test-vars [#'test-errors])
+
+(deftest flatten-map-test
+  (are [e m] (= e (tongue/flatten-map m))
+    nil nil
+    {} {}
+    [] []
+    {:a "a"} {:a "a"}
+    {:0 "a" :1 "b"} ["a" "b"]
+    {:a "a" :b 10} {:a "a" :b 10}
+    {:a.b "b" :b nil} {:a {:b "b"} :b nil}
+    {:a.b nil} {:a {:b "b"} :a.b nil}
+    {:a.b.0 "b1" :a.b.1 "b2" :a.c [] :a.d {} :a.e.0 "e1" :a.e.1.f "f"} {:a {:b ["b1" "b2"] :c [] :d {} :e ["e1" {:f "f"}]}}
+    {:a.b.0.c "c1" :a.b.1.c "c2" :a.b.1.d.0.e "e1"} {:a {:b [{:c "c1"} {:c "c2" :d [{:e "e1"}]}]}}
+    {:a.b.0.c "c1" :a.b.1.c "c2" :a.b.1.d.0.e/f "e1"} {:a {:b [{:c "c1"} {:c "c2" :d [{:e/f "e1"}]}]}}
+    ))

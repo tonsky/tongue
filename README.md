@@ -63,6 +63,8 @@ Define dictionaries:
           :between "Value must be between {1} and {2}"
           ;; For using a map
           :mail-title "{user}, {title} - Message received."
+          ;; For using a map with nested keys
+          :user-pets "{user.name} has 2 pets named {user.pets.0.name} and {user.pets.1.name}"
 
           ;; arbitrary functions
           :count (fn [x]
@@ -95,6 +97,7 @@ And go use it:
 (translate :en :welcome "Nikita") ;; => "Hello, Nikita!"
 (translate :en :between 0 100) ;; => "Value must be between 0 and 100"
 (translate :en :mail-title {:user "Tom" :title "New message"}) ;; => "Tom, New message - Message received."
+(translate :en :user-pets {:user {:name "Tom" :pets [{:name "tic"} {:name "tac"}]}}) ;; => "Tom has 2 pets named tic and tac"
 
 ;; if key resolves to fn, it will be called with provided arguments
 (translate :en :count 0) ;; => "No items"
