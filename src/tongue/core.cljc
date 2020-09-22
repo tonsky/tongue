@@ -137,7 +137,7 @@
       {} dict)))
 
 
-(defn- build-dicts [dicts]
+(defn build-dicts [dicts]
   (reduce-kv
     (fn [acc lang dict]
       (assoc acc lang (if (map? dict) (build-dict dict) dict)))
