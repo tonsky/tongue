@@ -26,7 +26,7 @@ As a result you have a library that handles exactly your case well with as much 
 Add to `project.clj`:
 
 ```clj
-[tongue "0.2.9"]
+[tongue "0.2.10"]
 ```
 
 In production:
@@ -260,6 +260,10 @@ Full list of formatting options:
 
 
 ## Changes
+
+### 0.2.10 September 22, 2020
+
+- Make build-dicts public #26 thx @hoxu
 
 ### 0.2.9 November 14, 2019
 
