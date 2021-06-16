@@ -34,7 +34,8 @@
       
       :else
       (fn [x]
-        (let [[_ sign integer-part fraction-part] (re-matches #"(-?)(\d+)\.?(\d*)" (str x))
+        (let [s (str #?(:clj (if (ratio? x) (double x) x) :cljs x))
+              [_ sign integer-part fraction-part] (re-matches #"(-?)(\d+)\.?(\d*)" s)
               len (count integer-part)]
           (str sign
                (loop [idx (rem len 3)
