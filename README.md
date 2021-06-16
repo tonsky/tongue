@@ -26,7 +26,7 @@ As a result you have a library that handles exactly your case well with as much 
 Add to `project.clj`:
 
 ```clj
-[tongue "0.2.10"]
+[tongue "0.3.0"]
 ```
 
 In production:
@@ -264,6 +264,11 @@ Full list of formatting options:
 
 
 ## Changes
+
+### 0.3.0 June 16, 2021
+
+- Values could be aliased to another keys #8 #10 thx @cjohansen
+- Fix ratio formatting #15
 
 ### 0.2.10 September 22, 2020
 

@@ -1,4 +1,4 @@
-(defproject tongue "0.2.10"
+(defproject tongue "0.3.0"
   :description  "DIY i18n library for Clojure/Script"
   :url          "https://github.com/tonsky/tongue"
   :license      {:name "Eclipse Public License"
