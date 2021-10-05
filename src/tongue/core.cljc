@@ -70,6 +70,32 @@
     :else       (str x)))
 
 
+(defprotocol IInterpolate
+  (interpolate-named [v dicts locale interpolations]
+    "Interpolate the value `v` with named `interpolations` in the provided map.")
+
+  (interpolate-positional [v dicts locale interpolations]
+    "Interpolate the value `v` with positional `interpolations` in the provided vector."))
+
+
+(extend-type #?(:clj String
+                :cljs js/String)
+  IInterpolate
+  (interpolate-named [s dicts locale interpolations]
+    (str/replace s #?(:clj  #"\{([\w*!_?$%&=<>'\-+.#0-9]+|[\w*!_?$%&=<>'\-+.#0-9]+\/[\w*!_?$%&=<>'\-+.#0-9:]+)\}"
+                      :cljs #"\{([\w*!_?$%&=<>'\-+.#0-9]+|[\w*!_?$%&=<>'\-+.#0-9]+/[\w*!_?$%&=<>'\-+.#0-9:]+)\}")
+                 (fn [[_ k]]
+                   (format-argument dicts locale (get interpolations (keyword k))))))
+
+  (interpolate-positional [s dicts locale interpolations]
+    (str/replace s #"\{(\d+)\}"
+                 (fn [[_ n]]
+                   (let [idx (parse-long n)
+                         arg (nth interpolations (dec idx)
+                                  (str "{Missing index " idx "}"))]
+                     (format-argument dicts locale arg))))))
+
+
 (macro/with-spec
   (spec/def ::locale simple-keyword?)
   (spec/def ::key keyword?))
@@ -87,27 +113,17 @@
       (spec/assert ::locale locale)
       (spec/assert ::key key))
     (let [t (lookup-template dicts locale key)
-          s (if (ifn? t) (t x) t)]
+          v (if (ifn? t) (t x) t)]
       (if (map? x)
-        (str/replace s #?(:clj  #"\{([\w*!_?$%&=<>'\-+.#0-9]+|[\w*!_?$%&=<>'\-+.#0-9]+\/[\w*!_?$%&=<>'\-+.#0-9:]+)\}"
-                          :cljs #"\{([\w*!_?$%&=<>'\-+.#0-9]+|[\w*!_?$%&=<>'\-+.#0-9]+/[\w*!_?$%&=<>'\-+.#0-9:]+)\}")
-                     (fn [[_ k]]
-                       (format-argument dicts locale (get x (keyword k)))))
-        (str/replace s #"\{1\}"
-                     (escape-re-subst (format-argument dicts locale x))))))
+        (interpolate-named v dicts locale x)
+        (interpolate-positional v dicts locale [x]))))
   ([dicts locale key x & rest]
     (macro/with-spec
       (spec/assert ::locale locale)
       (spec/assert ::key key))
     (let [args (cons x rest)
-          t    (lookup-template dicts locale key)
-          s    (if (ifn? t) (apply t x rest) t)]
-      (str/replace s #"\{(\d+)\}"
-                   (fn [[_ n]]
-                     (let [idx (parse-long n)
-                           arg (nth args (dec idx)
-                                    (str "{Missing index " idx "}"))]
-                       (format-argument dicts locale arg)))))))
+          t (lookup-template dicts locale key)]
+      (interpolate-positional (if (ifn? t) (apply t x rest) t) dicts locale args))))
 
 
 (defn- append-ns [ns segment]
