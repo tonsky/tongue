@@ -263,6 +263,67 @@ Full list of formatting options:
 | `...`                | ...            | anything not in `{}` is printed as-is |
 
 
+## Interpolation
+
+Tongue supports both positional and named interpolations on strings:
+
+```clj
+(require '[tongue.core :as tongue])
+
+(def dicts
+  { :en { :welcome "Hello, {1}!"
+          :mail-title "{user}, {title} - Message received."
+        }})
+
+(def tr (tongue/build-translate dicts))
+
+(tr :en :welcome "Nikita") ;; => "Hello, Nikita!"
+(tr :en :mail-title {:user "Tom" :title "New message"}) ;; => "Tom, New message - Message received."
+```
+
+The dictionary can contain other kinds of values. In that case, interpolation
+must be defined for the type by implementing the `tongue.core/IInterpolate`
+interface:
+
+```clj
+(require '[tongue.core :as tongue])
+
+(extend-type clojure.lang.PersistentVector
+  tongue/IInterpolate
+  (interpolate-named [v dicts locale interpolations]
+    (mapv (fn [x]
+            (if (and (keyword? x)
+                     (= "arg" (namespace x)))
+              (get interpolations x)
+              x)) v))
+
+  (interpolate-positional [v dicts locale interpolations]
+    (mapv (fn [x]
+            (if (and (vector? x)
+                     (= :arg (first x)))
+              (nth interpolations (second x))
+              x)) v)))
+```
+
+Now you can put vectors in the dictionary and have values interpolated in them:
+
+```clj
+(require '[tongue.core :as tongue])
+
+(def dicts
+  { :en { :welcome [:div {} "Hello, " [:arg 0]]
+          :mail-title [{:arg/user} ", Message received."]
+        }})
+
+(def tr (tongue/build-translate dicts))
+
+(tr :en :welcome "Nikita")
+;; => [:div {} "Hello, " "Nikita"]
+
+(tr :en :mail-title {:arg/user "Tom"})
+;; => ["Tom" ", Message received."]
+```
+
 ## Changes
 
 ### 0.3.0 June 16, 2021
