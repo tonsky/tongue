@@ -101,19 +101,23 @@
   (spec/def ::key keyword?))
 
 
+(defn- invoke? [t]
+  (and (ifn? t) (not (satisfies? IInterpolate t))))
+
+
 (defn- translate
   ([dicts locale key]
     (macro/with-spec
       (spec/assert ::locale locale)
       (spec/assert ::key key))
     (let [t (lookup-template dicts locale key)]
-      (if (ifn? t) (t) t)))
+      (if (invoke? t) (t) t)))
   ([dicts locale key x]
     (macro/with-spec
       (spec/assert ::locale locale)
       (spec/assert ::key key))
     (let [t (lookup-template dicts locale key)
-          v (if (ifn? t) (t x) t)]
+          v (if (invoke? t) (t x) t)]
       (if (map? x)
         (interpolate-named v dicts locale x)
         (interpolate-positional v dicts locale [x]))))
@@ -123,7 +127,7 @@
       (spec/assert ::key key))
     (let [args (cons x rest)
           t (lookup-template dicts locale key)]
-      (interpolate-positional (if (ifn? t) (apply t x rest) t) dicts locale args))))
+      (interpolate-positional (if (invoke? t) (apply t x rest) t) dicts locale args))))
 
 
 (defn- append-ns [ns segment]
