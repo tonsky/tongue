@@ -312,7 +312,7 @@ Now you can put vectors in the dictionary and have values interpolated in them:
 
 (def dicts
   { :en { :welcome [:div {} "Hello, " [:arg 0]]
-          :mail-title [{:arg/user} ", Message received."]
+          :mail-title [:arg/user ", Message received."]
         }})
 
 (def tr (tongue/build-translate dicts))
