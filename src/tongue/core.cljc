@@ -79,7 +79,7 @@
 
 
 (extend-type #?(:clj String
-                :cljs js/String)
+                :cljs string)
   IInterpolate
   (interpolate-named [s dicts locale interpolations]
     (str/replace s #?(:clj  #"\{([\w*!_?$%&=<>'\-+.#0-9]+|[\w*!_?$%&=<>'\-+.#0-9]+\/[\w*!_?$%&=<>'\-+.#0-9:]+)\}"
