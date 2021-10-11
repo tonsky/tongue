@@ -59,7 +59,7 @@
      :cljs (str/replace str #"\$" "$$$$")))
 
 
-(defn- format-argument [dicts locale x]
+(defn format-argument [dicts locale x]
   (cond
     (number? x) (let [formatter (or (lookup-template-for-locale dicts locale :tongue/format-number)
                                     str)]
