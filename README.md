@@ -26,7 +26,7 @@ As a result you have a library that handles exactly your case well with as much 
 Add to `project.clj`:
 
 ```clj
-[tongue "0.4.1"]
+[tongue "0.4.2"]
 ```
 
 In production:
@@ -325,6 +325,10 @@ Now you can put vectors in the dictionary and have values interpolated in them:
 ```
 
 ## Changes
+
+### 0.4.2 October 11, 2021
+
+- Make format-argument fn public #31 by @duckyuck
 
 ### 0.4.1 October 11, 2021
 
