@@ -26,7 +26,7 @@ As a result you have a library that handles exactly your case well with as much 
 Add to `project.clj`:
 
 ```clj
-[tongue "0.4.2"]
+[tongue "0.4.3"]
 ```
 
 In production:
@@ -74,6 +74,9 @@ Define dictionaries:
                      (zero? x) "No items"
                      (= 1 x)   "1 item"
                      :else     "{1} items")) ;; you can return string with substitutions
+
+          ;; optional -- override “Missing key” message
+          :tongue/missing-key "Missing key {1}"
         }
 
     :en-GB { :color "colour" } ;; sublang overrides
@@ -325,6 +328,10 @@ Now you can put vectors in the dictionary and have values interpolated in them:
 ```
 
 ## Changes
+
+### 0.4.3 December 9, 2021
+
+- Override “Missing Key” message with `:tongue/missing-key` #32
 
 ### 0.4.2 October 11, 2021
 

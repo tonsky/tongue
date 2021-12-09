@@ -44,14 +44,17 @@
   (when locale
     (loop [tags (tags locale)]
       (when-some [tag (first tags)]
-        (or (get (get dicts tag) key)
-            (recur (next tags)))))))
+        (or
+          (let [dict (get dicts tag)]
+            (when (contains? dict key)
+              (reduced (get dict key))))
+          (recur (next tags)))))))
 
 
 (defn- lookup-template [dicts locale key]
-  (or (lookup-template-for-locale dicts locale key)
-      (lookup-template-for-locale dicts (:tongue/fallback dicts) key)
-      (str "{Missing key " key "}")))
+  (or
+    (lookup-template-for-locale dicts locale key)
+    (lookup-template-for-locale dicts (:tongue/fallback dicts) key)))
 
 
 (defn- escape-re-subst [str]
@@ -61,13 +64,20 @@
 
 (defn format-argument [dicts locale x]
   (cond
-    (number? x) (let [formatter (or (lookup-template-for-locale dicts locale :tongue/format-number)
-                                    str)]
+    (number? x)
+    (let [formatter (unreduced
+                      (or (lookup-template-for-locale dicts locale :tongue/format-number)
+                        str))]
                   (formatter x))
-    (inst? x)   (let [formatter (or (lookup-template-for-locale dicts locale :tongue/format-inst)
-                                    format-inst-iso)]
-                  (formatter x))
-    :else       (str x)))
+
+    (inst? x)
+    (let [formatter (unreduced
+                      (or (lookup-template-for-locale dicts locale :tongue/format-inst)
+                        format-inst-iso))]
+      (formatter x))
+
+    :else
+    (str x)))
 
 
 (defprotocol IInterpolate
@@ -105,29 +115,41 @@
   (and (ifn? t) (not (satisfies? IInterpolate t))))
 
 
+(defn- translate-missing [dicts locale key]
+  (macro/if-some-reduced [t (lookup-template dicts locale :tongue/missing-key)]
+    (cond
+      (invoke? t) (interpolate-positional (t key) dicts locale [key])
+      (nil? t)    nil
+      :else       (interpolate-positional t dicts locale [key]))
+    (str "{Missing key " key "}")))
+
+
 (defn- translate
   ([dicts locale key]
-    (macro/with-spec
-      (spec/assert ::locale locale)
-      (spec/assert ::key key))
-    (let [t (lookup-template dicts locale key)]
-      (if (invoke? t) (t) t)))
+   (macro/with-spec
+     (spec/assert ::locale locale)
+     (spec/assert ::key key))
+   (macro/if-some-reduced [t (lookup-template dicts locale key)]
+     (if (invoke? t) (t) t)
+     (translate-missing dicts locale key)))
   ([dicts locale key x]
-    (macro/with-spec
-      (spec/assert ::locale locale)
-      (spec/assert ::key key))
-    (let [t (lookup-template dicts locale key)
-          v (if (invoke? t) (t x) t)]
-      (if (map? x)
-        (interpolate-named v dicts locale x)
-        (interpolate-positional v dicts locale [x]))))
+   (macro/with-spec
+     (spec/assert ::locale locale)
+     (spec/assert ::key key))
+   (macro/if-some-reduced [t (lookup-template dicts locale key)]
+     (let [v (if (invoke? t) (t x) t)]
+       (if (map? x)
+         (interpolate-named v dicts locale x)
+         (interpolate-positional v dicts locale [x])))
+     (translate-missing dicts locale key)))
   ([dicts locale key x & rest]
-    (macro/with-spec
-      (spec/assert ::locale locale)
-      (spec/assert ::key key))
-    (let [args (cons x rest)
-          t (lookup-template dicts locale key)]
-      (interpolate-positional (if (invoke? t) (apply t x rest) t) dicts locale args))))
+   (macro/with-spec
+     (spec/assert ::locale locale)
+     (spec/assert ::key key))
+   (macro/if-some-reduced [t (lookup-template dicts locale key)]
+     (let [args (cons x rest)]
+       (interpolate-positional (if (invoke? t) (apply t x rest) t) dicts locale args))
+     (translate-missing dicts locale key))))
 
 
 (defn- append-ns [ns segment]
@@ -187,14 +209,17 @@
 
 
 (macro/with-spec
-  (spec/def ::template (spec/or :str string?
-                                :fn ifn?))
+  (spec/def ::template (spec/or
+                         :str string?
+                         :fn  ifn?
+                         :nil nil?))
 
   (spec/def :tongue/format-number ifn?)
   (spec/def :tongue/format-inst ifn?)
+  (spec/def :tongue/missing-key ::template)
 
   (spec/def ::dict (spec/and
-                     (spec/keys :opt [:tongue/format-number :tongue/format-inst])
+                     (spec/keys :opt [:tongue/format-number :tongue/format-inst :tongue/missing-key])
                      (spec/map-of keyword? (spec/or :plain  ::template
                                                     :nested (spec/map-of keyword? ::template)))))
 

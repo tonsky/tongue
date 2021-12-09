@@ -125,4 +125,31 @@
   (is (thrown-with-msg? Throwable #"Assert failed: :tongue/\.\.\. keys can only be specified at top level"
         (tongue/build-translate {:en {:ns {:tongue/format-number nil}}}))))
 
+(deftest test-missing-key
+  (let [t (tongue/build-translate {:en {}})]
+    (is (= "{Missing key :unknown}" (t :en :unknown))))
+
+  (let [t (tongue/build-translate {:en {:tongue/missing-key "Missing key {1}"}})]
+    (is (= "Missing key :unknown" (t :en :unknown)))
+    (is (= "Missing key :unknown" (t :en-US :unknown))))
+
+  (let [t (tongue/build-translate {:en {:tongue/missing-key "Missing key {1}"}
+                                   :ru {:tongue/missing-key "Не определен ключ {1}"}})]
+    (is (= "Missing key :unknown" (t :en :unknown)))
+    (is (= "Не определен ключ :unknown" (t :ru :unknown))))
+
+  (let [t (tongue/build-translate {:en {:tongue/missing-key "Missing key {1}"}
+                                   :tongue/fallback :en})]
+    (is (= "Missing key :unknown" (t :ru :unknown))))
+
+  (let [t (tongue/build-translate {:en {:tongue/missing-key nil}})]
+    (is (= nil (t :en :unknown))))
+
+  (let [t (tongue/build-translate {:en {:tongue/missing-key "Missing key {1}"}
+                                   :ru {:tongue/missing-key nil}
+                                   :tongue/fallback :en})]
+    (is (= "Missing key :unknown" (t :en :unknown)))
+    (is (= nil (t :ru :unknown)))
+    (is (= nil (t :ru-RU :unknown)))))
+
 #_(clojure.test/test-vars [#'test-errors])
