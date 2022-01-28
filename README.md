@@ -20,6 +20,7 @@ As a result you have a library that handles exactly your case well with as much 
 ### Who’s using Tongue?
 
 - [Cognician](https://www.cognician.com), coaching platform
+- [Logseq](https://logseq.com/) - Privacy-first, open source knowledge base
 
 ## Setup
 
