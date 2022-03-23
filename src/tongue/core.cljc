@@ -1,4 +1,5 @@
 (ns tongue.core
+  (:refer-clojure :exclude [parse-long])
   (:require
     [clojure.string :as str]
     [tongue.inst :as inst]
