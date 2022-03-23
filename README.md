@@ -27,7 +27,7 @@ As a result you have a library that handles exactly your case well with as much 
 Add to `project.clj`:
 
 ```clj
-[tongue "0.4.3"]
+[tongue "0.4.4"]
 ```
 
 In production:
@@ -329,6 +329,10 @@ Now you can put vectors in the dictionary and have values interpolated in them:
 ```
 
 ## Changes
+
+### 0.4.4 March 23, 2022
+
+- Fixed warning on Clojure 1.11 #35 #36 thx @stevejmp
 
 ### 0.4.3 December 9, 2021
 
