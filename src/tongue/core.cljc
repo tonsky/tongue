@@ -95,7 +95,7 @@
     (str/replace s #?(:clj  #"\{([\w*!_?$%&=<>'\-+.#0-9]+|[\w*!_?$%&=<>'\-+.#0-9]+\/[\w*!_?$%&=<>'\-+.#0-9:]+)\}"
                       :cljs #"\{([\w*!_?$%&=<>'\-+.#0-9]+|[\w*!_?$%&=<>'\-+.#0-9]+/[\w*!_?$%&=<>'\-+.#0-9:]+)\}")
                  (fn [[_ k]]
-                   (format-argument dicts locale (get interpolations (keyword k))))))
+                   (format-argument dicts locale (interpolations (keyword k))))))
 
   (interpolate-positional [s dicts locale interpolations]
     (str/replace s #"\{(\d+)\}"
@@ -138,7 +138,7 @@
      (spec/assert ::key key))
    (macro/if-some-reduced [t (lookup-template dicts locale key)]
      (let [v (if (invoke? t) (t x) t)]
-       (if (map? x)
+       (if (or (map? x) (fn? x))
          (interpolate-named v dicts locale x)
          (interpolate-positional v dicts locale [x])))
      (translate-missing dicts locale key)))

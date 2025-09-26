@@ -152,4 +152,16 @@
     (is (= nil (t :ru :unknown)))
     (is (= nil (t :ru-RU :unknown)))))
 
+(deftest test-functional-interpolation
+  (let [translate (tongue/build-translate {:en-GB {:country "the UK"}
+                                           :en-US {:country "the US"}
+                                           :en {:welcome "Welcome to {country}!"}
+                                           :ru {:welcome "Добро пожаловать в Россию!"}})
+        message (fn message [locale k]
+                  (translate locale k (partial message locale)))]
+    (are [l t] (= (message l :welcome) t)
+      :en-GB "Welcome to the UK!"
+      :en-US "Welcome to the US!"
+      :ru-RU "Добро пожаловать в Россию!")))
+
 #_(clojure.test/test-vars [#'test-errors])
